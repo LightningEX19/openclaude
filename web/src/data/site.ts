@@ -1,5 +1,5 @@
 export const SITE = {
-  url: 'https://openclaude.gitlawb.com',
+  url: 'https://openclaude.twigpine.com',
   name: 'openclaude',
   title: 'openclaude — open-source coding agent CLI for any model',
   description:
@@ -9,11 +9,9 @@ export const SITE = {
   github: 'https://github.com/Twigpine/openclaude',
   releasesUrl: 'https://github.com/Twigpine/openclaude/releases',
   twigpine: 'https://twigpine.com',
-  // The node mirror path is unchanged: twigpine.com/node/repos/... redirects to
-  // the same explorer.gitlawb.com endpoint that gitlawb.com does, and neither
-  // currently serves this repo (404). Left as-is rather than swapped to a host
-  // that resolves no better.
-  gitlawbRepo: 'https://gitlawb.com/node/repos/z6MkqDnb/openclaude',
+  // Direct Explorer link, with the owner's full key. The short-key path under
+  // /node/repos returned 404, so link the page that resolves.
+  gitlawbRepo: 'https://explorer.twigpine.com/repos/z6MkqDnb7Siv3Cwj7pGJq4T5EsUisECqR8KpnDLwcaZq5TPr/openclaude',
   ogDefault: '/og/default.png',
   ogDocs: '/og/docs.png',
 } as const
