@@ -1137,7 +1137,9 @@ export function applyProviderProfileToProcessEnv(
               ? getRouteDefaultBaseUrl('api-route') ?? profile.baseUrl
               : route.routeId === 'commandcode' && !profile.baseUrl?.trim()
                 ? getRouteDefaultBaseUrl('commandcode') ?? profile.baseUrl
-                : profile.baseUrl
+                : route.routeId === 'gmi-cloud' && !profile.baseUrl?.trim()
+                  ? getRouteDefaultBaseUrl('gmi-cloud') ?? profile.baseUrl
+                  : profile.baseUrl
     const openAIProfileEnv: ProfileEnv = {
       OPENAI_BASE_URL: normalizedProfileBaseUrl,
       OPENAI_MODEL: primaryModel,
@@ -1174,13 +1176,17 @@ export function applyProviderProfileToProcessEnv(
       route.routeId === 'llmtr' && !isLlmtrProfile(profile)
     const withholdRetargetedCommandcodeCredential =
       route.routeId === 'commandcode' && !isCommandcodeProfile(profile)
+    // A gmi-cloud profile's key belongs to GMI: never install it for another URL.
+    const withholdRetargetedGmiCloudCredential =
+      route.routeId === 'gmi-cloud' && !isGmiCloudBaseUrl(normalizedProfileBaseUrl)
     if (
       profile.apiKey &&
       !withholdRetargetedApismartCredential &&
       !withholdRetargetedConcentrateCredential &&
       !withholdRetargetedApiRouteCredential &&
       !withholdRetargetedLlmtrCredential &&
-      !withholdRetargetedCommandcodeCredential
+      !withholdRetargetedCommandcodeCredential &&
+      !withholdRetargetedGmiCloudCredential
     ) {
       openAIProfileEnv.OPENAI_API_KEY = profile.apiKey
       if (route.vendorId === 'minimax' || normalizedProfileBaseUrl.toLowerCase().includes('minimax')) {
@@ -1215,7 +1221,7 @@ export function applyProviderProfileToProcessEnv(
       if (route.routeId === 'atlas-cloud' || normalizedProfileBaseUrl.toLowerCase().includes('atlascloud')) {
         openAIProfileEnv.ATLAS_CLOUD_API_KEY = profile.apiKey
       }
-      if (isGmiCloudBaseUrl(profile.baseUrl)) {
+      if (isGmiCloudBaseUrl(normalizedProfileBaseUrl)) {
         openAIProfileEnv.GMI_API_KEY = profile.apiKey
       }
       if (isApismartProfile(profile)) {

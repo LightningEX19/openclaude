@@ -1181,7 +1181,7 @@ describe('applyProviderProfileToProcessEnv', () => {
     expect(getFreshAPIProvider()).toBe('openai')
   })
 
-  test('a gmi-cloud profile pointed at another URL does not populate GMI_API_KEY', async () => {
+  test('a gmi-cloud profile pointed at another URL never installs the saved GMI key', async () => {
     const { applyProviderProfileToProcessEnv } =
       await importFreshProviderProfileModules()
 
@@ -1189,7 +1189,20 @@ describe('applyProviderProfileToProcessEnv', () => {
       buildGmiCloudProfile({ baseUrl: 'https://llm-proxy.internal.example/v1' }),
     )
 
+    expect(process.env.OPENAI_BASE_URL).toBe('https://llm-proxy.internal.example/v1')
+    expect(process.env.OPENAI_API_KEY).toBeUndefined()
     expect(process.env.GMI_API_KEY).toBeUndefined()
+  })
+
+  test('a gmi-cloud profile with no base URL uses the GMI default and installs its key', async () => {
+    const { applyProviderProfileToProcessEnv } =
+      await importFreshProviderProfileModules()
+
+    applyProviderProfileToProcessEnv(buildGmiCloudProfile({ baseUrl: '' }))
+
+    expect(process.env.OPENAI_BASE_URL).toBe('https://api.gmi-serving.com/v1')
+    expect(process.env.OPENAI_API_KEY).toBe('gmi-test-key')
+    expect(process.env.GMI_API_KEY).toBe('gmi-test-key')
   })
 
   test('switching from a gmi cloud profile to another provider clears GMI_API_KEY', async () => {
@@ -4205,6 +4218,39 @@ describe('setActiveProviderProfile', () => {
       expect(persisted.env.OPENAI_BASE_URL).toBe('https://api.gmi-serving.com/v1')
       expect(persisted.env.OPENAI_MODEL).toBe('deepseek-ai/DeepSeek-V4-Pro')
       expect(persisted.env.GMI_API_KEY).toBe('gmi-test-key')
+    } finally {
+      process.chdir(originalCwd)
+      rmSync(tempDir, { recursive: true, force: true })
+      rmSync(configDir, { recursive: true, force: true })
+    }
+  })
+
+  test('persists a retargeted gmi-cloud profile against GMI only', async () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-'))
+    const configDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-config-'))
+    process.chdir(tempDir)
+    process.env.CLAUDE_CONFIG_DIR = configDir
+
+    try {
+      const { setActiveProviderProfile } =
+        await importFreshProviderProfileModules()
+      const retargeted = buildGmiCloudProfile({
+        id: 'gmi_retargeted_prof',
+        baseUrl: 'https://llm-proxy.internal.example/v1',
+      })
+
+      saveMockGlobalConfig(current => ({
+        ...current,
+        providerProfiles: [retargeted],
+      }))
+
+      setActiveProviderProfile('gmi_retargeted_prof', { configDir })
+      const persisted = JSON.parse(
+        readFileSync(join(configDir, '.openclaude-profile.json'), 'utf8'),
+      )
+
+      expect(persisted.env.OPENAI_BASE_URL).toBe('https://api.gmi-serving.com/v1')
+      expect(JSON.stringify(persisted.env)).not.toContain('llm-proxy.internal.example')
     } finally {
       process.chdir(originalCwd)
       rmSync(tempDir, { recursive: true, force: true })
