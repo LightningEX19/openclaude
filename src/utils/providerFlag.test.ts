@@ -1380,11 +1380,11 @@ describe('applyProviderFlag - gmi-cloud', () => {
   test('GMI_MODEL selects the model over a lingering OPENAI_MODEL', () => {
     process.env.GMI_API_KEY = 'gmi-secret-key'
     process.env.OPENAI_MODEL = 'stale-openai-model'
-    process.env.GMI_MODEL = 'anthropic/claude-sonnet-4.6'
+    process.env.GMI_MODEL = 'moonshotai/kimi-k2.7-code'
 
     applyProviderFlag('gmi-cloud', [])
 
-    expect(process.env.OPENAI_MODEL).toBe('anthropic/claude-sonnet-4.6')
+    expect(process.env.OPENAI_MODEL).toBe('moonshotai/kimi-k2.7-code')
   })
 
   test('a placeholder GMI_MODEL falls back to the default model', () => {
@@ -1398,7 +1398,7 @@ describe('applyProviderFlag - gmi-cloud', () => {
 
   test('--model wins over GMI_MODEL', () => {
     process.env.GMI_API_KEY = 'gmi-secret-key'
-    process.env.GMI_MODEL = 'anthropic/claude-sonnet-4.6'
+    process.env.GMI_MODEL = 'moonshotai/kimi-k2.7-code'
 
     applyProviderFlag('gmi-cloud', ['--model', 'deepseek-ai/DeepSeek-V4-Flash'])
 

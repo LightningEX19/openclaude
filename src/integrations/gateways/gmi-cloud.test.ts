@@ -35,8 +35,6 @@ test('GMI Cloud uses a dedicated-key hybrid OpenAI-compatible gateway contract',
   expect(gateway.catalog?.models?.map(model => model.apiName)).toEqual([
     'deepseek-ai/DeepSeek-V4-Pro',
     'deepseek-ai/DeepSeek-V4-Flash',
-    'anthropic/claude-sonnet-4.6',
-    'anthropic/claude-opus-4.7',
   ])
 })
 
@@ -60,29 +58,29 @@ test('GMI Cloud preset resolves to its gateway route and reads GMI env vars', ()
   expect(
     getProviderPresetUiMetadata('gmi-cloud', {
       GMI_API_KEY: 'test-gmi-key',
-      GMI_MODEL: 'anthropic/claude-sonnet-4.6',
+      GMI_MODEL: 'moonshotai/kimi-k2.7-code',
       OPENAI_MODEL: 'custom-openai-model',
     }),
   ).toMatchObject({
-    model: 'anthropic/claude-sonnet-4.6',
+    model: 'moonshotai/kimi-k2.7-code',
   })
 })
 
-test('curated Claude models are not capped by the shared 8,192-token descriptors', () => {
+test('curated models resolve limits from their shared descriptors', () => {
   expect(
     resolveModelRuntimeLimits({
-      model: 'anthropic/claude-sonnet-4.6',
+      model: 'deepseek-ai/DeepSeek-V4-Pro',
       resolvedRouteId: 'gmi-cloud',
       processEnv: {},
     }),
-  ).toMatchObject({ contextWindow: 200_000, maxOutputTokens: 64_000 })
+  ).toMatchObject({ contextWindow: 1_048_576, maxOutputTokens: 65_536 })
   expect(
     resolveModelRuntimeLimits({
-      model: 'anthropic/claude-opus-4.7',
+      model: 'deepseek-ai/DeepSeek-V4-Flash',
       resolvedRouteId: 'gmi-cloud',
       processEnv: {},
     }),
-  ).toMatchObject({ contextWindow: 200_000, maxOutputTokens: 128_000 })
+  ).toMatchObject({ contextWindow: 1_048_576, maxOutputTokens: 65_536 })
 })
 
 test("GMI's Anthropic-compatible endpoint on the same host stays a custom Anthropic route", () => {
@@ -136,6 +134,25 @@ test('GMI Cloud routes by its base URL and never falls back to a generic OpenAI 
       },
     }),
   ).toBe('gmi-key')
+})
+
+test('mapGmiCloudModel reads the fields GMI /v1/models returns', () => {
+  expect(
+    mapGmiCloudModel({
+      id: 'moonshotai/kimi-k2.7-code',
+      object: 'model',
+      name: 'Kimi K2.7 Code',
+      owned_by: 'GMI Cloud',
+      context_length: 262_144,
+      quantization: 'fp8',
+      pricing: { prompt: '0.00000095', completion: '0.000004' },
+    }),
+  ).toEqual({
+    id: 'moonshotai/kimi-k2.7-code',
+    apiName: 'moonshotai/kimi-k2.7-code',
+    label: 'Kimi K2.7 Code',
+    contextWindow: 262_144,
+  })
 })
 
 test('mapGmiCloudModel keeps chat models and forwards reported limits', () => {

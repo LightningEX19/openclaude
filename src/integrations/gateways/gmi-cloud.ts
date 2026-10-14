@@ -56,8 +56,8 @@ export function mapGmiCloudModel(raw: unknown) {
 }
 
 // Seeded from the coding picks in https://docs.gmicloud.ai/coding-tools/opencode
-// that have a shared model descriptor; the rest of the catalog comes from
-// /v1/models discovery.
+// that GMI's /v1/models actually serves; the rest of the catalog comes from
+// discovery.
 const curatedModels = [
   {
     id: 'deepseek-ai/DeepSeek-V4-Pro',
@@ -72,26 +72,6 @@ const curatedModels = [
     aliases: ['deepseek-v4-flash'],
     modelDescriptorId: 'deepseek-v4-flash',
     label: 'DeepSeek V4 Flash',
-  },
-  // The shared Claude descriptors cap output at 8,192 tokens, so these two set
-  // their own limits (output per models.dev's gmicloud catalog).
-  {
-    id: 'anthropic/claude-sonnet-4.6',
-    apiName: 'anthropic/claude-sonnet-4.6',
-    aliases: ['claude-sonnet-4-6'],
-    modelDescriptorId: 'claude-sonnet-4-6',
-    label: 'Claude Sonnet 4.6',
-    contextWindow: 200_000,
-    maxOutputTokens: 64_000,
-  },
-  {
-    id: 'anthropic/claude-opus-4.7',
-    apiName: 'anthropic/claude-opus-4.7',
-    aliases: ['claude-opus-4-7'],
-    modelDescriptorId: 'claude-opus-4-7',
-    label: 'Claude Opus 4.7',
-    contextWindow: 200_000,
-    maxOutputTokens: 128_000,
   },
 ]
 
