@@ -82,7 +82,7 @@ export const envVars: EnvVar[] = [
   { name: 'APISMART_API_KEY', description: 'ApiSmart gateway key; selects the ApiSmart route when no conflicting endpoint is configured.' },
   { name: 'APISMART_MODEL', description: 'Optional ApiSmart model override; defaults to DEEPSEEK_V4_FLASH.' },
   { name: 'GMI_API_KEY', description: 'GMI Cloud key; the only credential the GMI Cloud route accepts.' },
-  { name: 'GMI_MODEL', description: 'Optional model override for --provider gmi-cloud; defaults to deepseek-ai/DeepSeek-V4-Pro.' },
+  { name: 'GMI_MODEL', description: 'Optional model override for --provider gmi-cloud; defaults to Qwen/Qwen3.8-Max.' },
   { name: 'CLOUDFLARE_API_TOKEN', description: 'Cloudflare Workers AI token.' },
   { name: 'NVIDIA_API_KEY', description: 'NVIDIA NIM key.' },
   { name: 'NEARAI_API_KEY', description: 'NEAR AI unified gateway key.' },

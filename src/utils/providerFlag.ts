@@ -731,7 +731,7 @@ export function applyProviderFlag(
           process.env.OPENAI_MODEL = gmiModel
         } else {
           process.env.OPENAI_MODEL ??=
-            defaultModel ?? 'deepseek-ai/DeepSeek-V4-Pro'
+            defaultModel ?? 'Qwen/Qwen3.8-Max'
         }
       }
       if (model) process.env.OPENAI_MODEL = model

@@ -13,7 +13,7 @@ import gateway, { mapGmiCloudModel } from './gmi-cloud.js'
 
 test('GMI Cloud uses a dedicated-key hybrid OpenAI-compatible gateway contract', () => {
   expect(gateway.defaultBaseUrl).toBe('https://api.gmi-serving.com/v1')
-  expect(gateway.defaultModel).toBe('deepseek-ai/DeepSeek-V4-Pro')
+  expect(gateway.defaultModel).toBe('Qwen/Qwen3.8-Max')
   expect(gateway.setup.credentialEnvVars).toEqual(['GMI_API_KEY'])
   expect(gateway.setup.dedicatedCredentialsOnly).toBe(true)
   expect(gateway.preset?.apiKeyEnvVars).toEqual(['GMI_API_KEY'])
@@ -33,6 +33,8 @@ test('GMI Cloud uses a dedicated-key hybrid OpenAI-compatible gateway contract',
   expect(gateway.catalog?.source).toBe('hybrid')
   expect(gateway.catalog?.discovery?.requiresAuth).toBe(true)
   expect(gateway.catalog?.models?.map(model => model.apiName)).toEqual([
+    'Qwen/Qwen3.8-Max',
+    'Qwen/Qwen3.8-Flash',
     'deepseek-ai/DeepSeek-V4-Pro',
     'deepseek-ai/DeepSeek-V4-Flash',
   ])
@@ -51,7 +53,7 @@ test('GMI Cloud preset resolves to its gateway route and reads GMI env vars', ()
   ).toMatchObject({
     apiKey: 'test-gmi-key',
     baseUrl: 'https://api.gmi-serving.com/v1',
-    model: 'deepseek-ai/DeepSeek-V4-Pro',
+    model: 'Qwen/Qwen3.8-Max',
     provider: 'gmi-cloud',
     routeId: 'gmi-cloud',
   })
@@ -67,6 +69,20 @@ test('GMI Cloud preset resolves to its gateway route and reads GMI env vars', ()
 })
 
 test('curated models resolve limits from their shared descriptors', () => {
+  expect(
+    resolveModelRuntimeLimits({
+      model: 'Qwen/Qwen3.8-Max',
+      resolvedRouteId: 'gmi-cloud',
+      processEnv: {},
+    }),
+  ).toMatchObject({ contextWindow: 262_144, maxOutputTokens: 65_536 })
+  expect(
+    resolveModelRuntimeLimits({
+      model: 'Qwen/Qwen3.8-Flash',
+      resolvedRouteId: 'gmi-cloud',
+      processEnv: {},
+    }),
+  ).toMatchObject({ contextWindow: 1_048_575, maxOutputTokens: 65_536 })
   expect(
     resolveModelRuntimeLimits({
       model: 'deepseek-ai/DeepSeek-V4-Pro',

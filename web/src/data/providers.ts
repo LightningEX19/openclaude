@@ -202,7 +202,7 @@ export const providers: Provider[] = [
     group: 'gateways',
     setup: '/provider or env vars',
     envVars: ['GMI_API_KEY', 'GMI_MODEL'],
-    notes: 'OpenAI-compatible inference at https://api.gmi-serving.com/v1; defaults to deepseek-ai/DeepSeek-V4-Pro with hybrid /v1/models discovery.',
+    notes: 'OpenAI-compatible inference at https://api.gmi-serving.com/v1; defaults to Qwen/Qwen3.8-Max with hybrid /v1/models discovery.',
   },
   {
     id: 'apismart',

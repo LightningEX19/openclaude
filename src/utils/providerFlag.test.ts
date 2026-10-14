@@ -1309,7 +1309,7 @@ describe('applyProviderFlag - gmi-cloud', () => {
     expect(result.error).toBeUndefined()
     expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
     expect(process.env.OPENAI_BASE_URL).toBe('https://api.gmi-serving.com/v1')
-    expect(process.env.OPENAI_MODEL).toBe('deepseek-ai/DeepSeek-V4-Pro')
+    expect(process.env.OPENAI_MODEL).toBe('Qwen/Qwen3.8-Max')
     expect(process.env.OPENAI_API_KEY).toBe('gmi-secret-key')
   })
 
@@ -1393,7 +1393,7 @@ describe('applyProviderFlag - gmi-cloud', () => {
 
     applyProviderFlag('gmi-cloud', [])
 
-    expect(process.env.OPENAI_MODEL).toBe('deepseek-ai/DeepSeek-V4-Pro')
+    expect(process.env.OPENAI_MODEL).toBe('Qwen/Qwen3.8-Max')
   })
 
   test('--model wins over GMI_MODEL', () => {

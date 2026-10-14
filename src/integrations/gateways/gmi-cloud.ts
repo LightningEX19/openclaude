@@ -55,10 +55,24 @@ export function mapGmiCloudModel(raw: unknown) {
   }
 }
 
-// Seeded from the coding picks in https://docs.gmicloud.ai/coding-tools/opencode
-// that GMI's /v1/models actually serves; the rest of the catalog comes from
-// discovery.
+// Qwen 3.8 first (the models GMI Cloud partners with), then the DeepSeek V4
+// coding picks from https://docs.gmicloud.ai/coding-tools/opencode. All four
+// are served by GMI's /v1/models; the rest of the catalog comes from discovery.
 const curatedModels = [
+  {
+    id: 'Qwen/Qwen3.8-Max',
+    apiName: 'Qwen/Qwen3.8-Max',
+    aliases: ['qwen3.8-max'],
+    modelDescriptorId: 'qwen3.8-max',
+    label: 'Qwen 3.8 Max',
+  },
+  {
+    id: 'Qwen/Qwen3.8-Flash',
+    apiName: 'Qwen/Qwen3.8-Flash',
+    aliases: ['qwen3.8-flash'],
+    modelDescriptorId: 'qwen3.8-flash',
+    label: 'Qwen 3.8 Flash',
+  },
   {
     id: 'deepseek-ai/DeepSeek-V4-Pro',
     apiName: 'deepseek-ai/DeepSeek-V4-Pro',
@@ -96,7 +110,7 @@ export default defineGateway({
   vendorId: 'openai',
   category: 'hosted',
   defaultBaseUrl: 'https://api.gmi-serving.com/v1',
-  defaultModel: 'deepseek-ai/DeepSeek-V4-Pro',
+  defaultModel: 'Qwen/Qwen3.8-Max',
   setup: {
     requiresAuth: true,
     authMode: 'api-key',
