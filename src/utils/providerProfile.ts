@@ -29,6 +29,7 @@ import {
   isCanonicalApismartInferenceBaseUrl,
   isCanonicalConcentrateInferenceBaseUrl,
   isCanonicalLlmtrInferenceBaseUrl,
+  isGmiCloudBaseUrl,
   isCanonicalCommandcodeInferenceBaseUrl,
   isLongcatBaseUrl,
   normalizeXiaomiMimoBaseUrl,
@@ -690,12 +691,17 @@ export function buildGmiCloudProfileEnv(options: {
     OPENAI_API_KEY: key,
     GMI_API_KEY: key,
   }
+  // The GMI key only ever travels to GMI's inference API: ignore an ambient
+  // OPENAI_BASE_URL (it may belong to another provider) and fall back to the
+  // default when the profile's URL is not GMI's.
+  const explicitBaseUrl = sanitizeProviderConfigValue(options.baseUrl, secretSource)
+  const baseUrl =
+    explicitBaseUrl && isGmiCloudBaseUrl(explicitBaseUrl)
+      ? explicitBaseUrl
+      : defaultBaseUrl
 
   return {
-    OPENAI_BASE_URL:
-      sanitizeProviderConfigValue(options.baseUrl, secretSource) ||
-      sanitizeProviderConfigValue(processEnv.OPENAI_BASE_URL, secretSource) ||
-      defaultBaseUrl,
+    OPENAI_BASE_URL: baseUrl,
     OPENAI_MODEL:
       normalizeProfileModel(
         sanitizeProviderConfigValue(options.model, secretSource),

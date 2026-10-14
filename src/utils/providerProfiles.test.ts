@@ -1181,6 +1181,17 @@ describe('applyProviderProfileToProcessEnv', () => {
     expect(getFreshAPIProvider()).toBe('openai')
   })
 
+  test('a gmi-cloud profile pointed at another URL does not populate GMI_API_KEY', async () => {
+    const { applyProviderProfileToProcessEnv } =
+      await importFreshProviderProfileModules()
+
+    applyProviderProfileToProcessEnv(
+      buildGmiCloudProfile({ baseUrl: 'https://llm-proxy.internal.example/v1' }),
+    )
+
+    expect(process.env.GMI_API_KEY).toBeUndefined()
+  })
+
   test('switching from a gmi cloud profile to another provider clears GMI_API_KEY', async () => {
     const { applyProviderProfileToProcessEnv } =
       await importFreshProviderProfileModules()

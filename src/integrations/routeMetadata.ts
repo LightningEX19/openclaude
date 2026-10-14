@@ -402,8 +402,10 @@ export function isFireworksBaseUrl(value: string | undefined): boolean {
 }
 
 /**
- * Checks whether the given URL value targets the GMI Cloud inference API
- * by matching the hostname against `api.gmi-serving.com`.
+ * Checks whether the given URL value targets the GMI Cloud inference API:
+ * HTTPS on the default port, host `api.gmi-serving.com`, path `/v1` or below.
+ * The same host's root serves GMI's Anthropic-compatible API, which is not
+ * this route.
  */
 export function isGmiCloudBaseUrl(value: string | undefined): boolean {
   const trimmed = value?.trim()
@@ -412,7 +414,14 @@ export function isGmiCloudBaseUrl(value: string | undefined): boolean {
   }
 
   try {
-    return new URL(trimmed).hostname.toLowerCase() === 'api.gmi-serving.com'
+    const url = new URL(trimmed)
+    const path = url.pathname.replace(/\/+$/, '')
+    return (
+      url.protocol === 'https:' &&
+      url.port === '' &&
+      url.hostname.toLowerCase() === 'api.gmi-serving.com' &&
+      (path === '/v1' || path.startsWith('/v1/'))
+    )
   } catch {
     return false
   }

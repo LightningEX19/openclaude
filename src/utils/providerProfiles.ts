@@ -1215,7 +1215,7 @@ export function applyProviderProfileToProcessEnv(
       if (route.routeId === 'atlas-cloud' || normalizedProfileBaseUrl.toLowerCase().includes('atlascloud')) {
         openAIProfileEnv.ATLAS_CLOUD_API_KEY = profile.apiKey
       }
-      if (route.routeId === 'gmi-cloud' || isGmiCloudBaseUrl(profile.baseUrl)) {
+      if (isGmiCloudBaseUrl(profile.baseUrl)) {
         openAIProfileEnv.GMI_API_KEY = profile.apiKey
       }
       if (isApismartProfile(profile)) {

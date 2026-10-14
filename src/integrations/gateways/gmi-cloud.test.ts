@@ -129,6 +129,14 @@ test('GMI Cloud routes by its base URL and never falls back to a generic OpenAI 
     false,
   )
   expect(isGmiCloudBaseUrl('https://evil-gmi-serving.com/v1')).toBe(false)
+  // Only the HTTPS inference API on the default port under /v1.
+  expect(isGmiCloudBaseUrl('https://api.gmi-serving.com:443/v1')).toBe(true)
+  expect(isGmiCloudBaseUrl('https://api.gmi-serving.com/v1/chat/completions')).toBe(true)
+  expect(isGmiCloudBaseUrl('http://api.gmi-serving.com/v1')).toBe(false)
+  expect(isGmiCloudBaseUrl('https://api.gmi-serving.com:8443/v1')).toBe(false)
+  expect(isGmiCloudBaseUrl('https://api.gmi-serving.com')).toBe(false)
+  expect(isGmiCloudBaseUrl('https://api.gmi-serving.com/v2')).toBe(false)
+  expect(isGmiCloudBaseUrl('https://api.gmi-serving.com/v1beta')).toBe(false)
   expect(isGmiCloudBaseUrl('https://gmi-serving.com/v1')).toBe(false)
   expect(isGmiCloudBaseUrl('not a url')).toBe(false)
   expect(isGmiCloudBaseUrl(undefined)).toBe(false)
