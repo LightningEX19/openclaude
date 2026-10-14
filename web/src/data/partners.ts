@@ -52,6 +52,13 @@ export const partners: Partner[] = [
     logoDark: '/partners/exa-logo-dark.svg',
     height: 28,
   },
+  {
+    name: 'GMI Cloud',
+    url: 'https://www.gmicloud.ai/',
+    logo: '/partners/gmi-cloud-logo.svg',
+    logoDark: '/partners/gmi-cloud-logo-dark.svg',
+    height: 26,
+  },
 ]
 
 export const community = [

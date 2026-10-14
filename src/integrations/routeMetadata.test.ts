@@ -244,6 +244,12 @@ test('getRouteCredentialEnvVars omits the openai fallback for dedicatedCredentia
       ATLAS_CLOUD_API_KEY: 'atlas-key',
     }),
   ).toBe('atlas-key')
+  expect(getRouteCredentialEnvVars('gmi-cloud')).toEqual(['GMI_API_KEY'])
+  expect(
+    getRouteCredentialValue('gmi-cloud', {
+      OPENAI_API_KEY: 'sk-openai-generic',
+    }),
+  ).toBeUndefined()
   expect(getRouteCredentialEnvVars('apismart')).toEqual(['APISMART_API_KEY'])
   expect(
     getRouteCredentialValue('apismart', {

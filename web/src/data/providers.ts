@@ -197,6 +197,14 @@ export const providers: Provider[] = [
     notes: 'OpenAI-compatible hosted open models with reasoning support at https://api.atlascloud.ai/v1.',
   },
   {
+    id: 'gmi-cloud',
+    name: 'GMI Cloud',
+    group: 'gateways',
+    setup: '/provider or env vars',
+    envVars: ['GMI_API_KEY', 'GMI_MODEL'],
+    notes: 'OpenAI-compatible inference at https://api.gmi-serving.com/v1; defaults to deepseek-ai/DeepSeek-V4-Pro with hybrid /v1/models discovery.',
+  },
+  {
     id: 'apismart',
     name: 'ApiSmart',
     group: 'gateways',

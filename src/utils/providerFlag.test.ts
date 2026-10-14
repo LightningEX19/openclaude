@@ -45,6 +45,8 @@ const ENV_KEYS = [
   'VENICE_API_KEY',
   'MIMO_API_KEY',
   'ATLAS_CLOUD_API_KEY',
+  'GMI_API_KEY',
+  'GMI_MODEL',
   'APISMART_API_KEY',
   'APISMART_MODEL',
   'API_ROUTE_API_KEY',
@@ -101,6 +103,8 @@ const RESET_KEYS = [
   'VENICE_API_KEY',
   'MIMO_API_KEY',
   'ATLAS_CLOUD_API_KEY',
+  'GMI_API_KEY',
+  'GMI_MODEL',
   'APISMART_API_KEY',
   'APISMART_MODEL',
   'API_ROUTE_API_KEY',
@@ -1293,6 +1297,112 @@ describe('applyProviderFlag - atlas-cloud', () => {
     applyProviderFlag('atlas-cloud', ['--model', 'zai-org/glm-5'])
 
     expect(process.env.OPENAI_MODEL).toBe('zai-org/glm-5')
+  })
+})
+
+describe('applyProviderFlag - gmi-cloud', () => {
+  test('sets GMI Cloud OpenAI-compatible defaults and mirrors GMI_API_KEY', () => {
+    process.env.GMI_API_KEY = 'gmi-secret-key'
+
+    const result = applyProviderFlag('gmi-cloud', [])
+
+    expect(result.error).toBeUndefined()
+    expect(process.env.CLAUDE_CODE_USE_OPENAI).toBe('1')
+    expect(process.env.OPENAI_BASE_URL).toBe('https://api.gmi-serving.com/v1')
+    expect(process.env.OPENAI_MODEL).toBe('deepseek-ai/DeepSeek-V4-Pro')
+    expect(process.env.OPENAI_API_KEY).toBe('gmi-secret-key')
+  })
+
+  test('dedicated key overrides a lingering OPENAI_API_KEY from another provider', () => {
+    process.env.OPENAI_API_KEY = 'existing-openai-key'
+    process.env.GMI_API_KEY = 'gmi-secret-key'
+
+    applyProviderFlag('gmi-cloud', [])
+
+    expect(process.env.OPENAI_API_KEY).toBe('gmi-secret-key')
+  })
+
+  test('clears a stale OPENAI_API_KEY when no GMI Cloud key is set', () => {
+    process.env.OPENAI_API_KEY = 'existing-openai-key'
+
+    applyProviderFlag('gmi-cloud', [])
+
+    expect(process.env.OPENAI_API_KEY).toBeUndefined()
+  })
+
+  test('clears a copied GMI key from OPENAI_API_KEY when switching to another provider', () => {
+    process.env.GMI_API_KEY = 'gmi-secret-key'
+    process.env.OPENAI_API_KEY = 'gmi-secret-key'
+
+    applyProviderFlag('openai', [])
+
+    expect(process.env.OPENAI_API_KEY).toBeUndefined()
+  })
+
+  test('replaces a stale base URL belonging to another known provider', () => {
+    process.env.OPENAI_BASE_URL = 'https://api.venice.ai/api/v1'
+    process.env.GMI_API_KEY = 'gmi-secret-key'
+
+    applyProviderFlag('gmi-cloud', [])
+
+    expect(process.env.OPENAI_BASE_URL).toBe('https://api.gmi-serving.com/v1')
+  })
+
+  test('preserves a custom base URL but never mirrors the GMI key to it', () => {
+    process.env.OPENAI_BASE_URL = 'https://llm-proxy.internal.example/v1'
+    process.env.OPENAI_API_KEY = 'existing-openai-key'
+    process.env.GMI_API_KEY = 'gmi-secret-key'
+
+    applyProviderFlag('gmi-cloud', [])
+
+    expect(process.env.OPENAI_BASE_URL).toBe('https://llm-proxy.internal.example/v1')
+    expect(process.env.OPENAI_API_KEY).toBeUndefined()
+  })
+
+  test('drops an API format and custom auth header left by another provider', () => {
+    process.env.GMI_API_KEY = 'gmi-secret-key'
+    process.env.OPENAI_API_FORMAT = 'responses'
+    process.env.OPENAI_AUTH_HEADER = 'api-key'
+    process.env.OPENAI_AUTH_SCHEME = 'raw'
+    process.env.OPENAI_AUTH_HEADER_VALUE = 'other-provider-secret'
+    process.env.ANTHROPIC_CUSTOM_HEADERS = 'x-other: secret'
+
+    applyProviderFlag('gmi-cloud', [])
+
+    expect(process.env.OPENAI_API_FORMAT).toBeUndefined()
+    expect(process.env.OPENAI_AUTH_HEADER).toBeUndefined()
+    expect(process.env.OPENAI_AUTH_SCHEME).toBeUndefined()
+    expect(process.env.OPENAI_AUTH_HEADER_VALUE).toBeUndefined()
+    expect(process.env.ANTHROPIC_CUSTOM_HEADERS).toBeUndefined()
+    expect(process.env.OPENAI_API_KEY).toBe('gmi-secret-key')
+  })
+
+  test('GMI_MODEL selects the model over a lingering OPENAI_MODEL', () => {
+    process.env.GMI_API_KEY = 'gmi-secret-key'
+    process.env.OPENAI_MODEL = 'stale-openai-model'
+    process.env.GMI_MODEL = 'anthropic/claude-sonnet-4.6'
+
+    applyProviderFlag('gmi-cloud', [])
+
+    expect(process.env.OPENAI_MODEL).toBe('anthropic/claude-sonnet-4.6')
+  })
+
+  test('a placeholder GMI_MODEL falls back to the default model', () => {
+    process.env.GMI_API_KEY = 'gmi-secret-key'
+    process.env.GMI_MODEL = 'undefined'
+
+    applyProviderFlag('gmi-cloud', [])
+
+    expect(process.env.OPENAI_MODEL).toBe('deepseek-ai/DeepSeek-V4-Pro')
+  })
+
+  test('--model wins over GMI_MODEL', () => {
+    process.env.GMI_API_KEY = 'gmi-secret-key'
+    process.env.GMI_MODEL = 'anthropic/claude-sonnet-4.6'
+
+    applyProviderFlag('gmi-cloud', ['--model', 'deepseek-ai/DeepSeek-V4-Flash'])
+
+    expect(process.env.OPENAI_MODEL).toBe('deepseek-ai/DeepSeek-V4-Flash')
   })
 })
 

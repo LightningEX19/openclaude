@@ -249,6 +249,21 @@ export const PROVIDER_PRESET_MANIFEST = [
     ]
   },
   {
+    "preset": "gmi-cloud",
+    "routeKind": "gateway",
+    "routeId": "gmi-cloud",
+    "vendorId": "openai",
+    "gatewayId": "gmi-cloud",
+    "description": "GMI Cloud inference (OpenAI-compatible)",
+    "apiKeyEnvVars": [
+      "GMI_API_KEY"
+    ],
+    "modelEnvVars": [
+      "GMI_MODEL",
+      "OPENAI_MODEL"
+    ]
+  },
+  {
     "preset": "gemini",
     "routeKind": "vendor",
     "routeId": "gemini",
@@ -617,6 +632,7 @@ export const ORDERED_PROVIDER_PRESETS = [
   "concentrate",
   "deepseek",
   "fireworks",
+  "gmi-cloud",
   "gemini",
   "groq",
   "hicap",

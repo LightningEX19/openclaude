@@ -69,6 +69,7 @@ const originalEnv = {
   MIMO_API_KEY: process.env.MIMO_API_KEY,
   LONGCAT_API_KEY: process.env.LONGCAT_API_KEY,
   CLINE_API_KEY: process.env.CLINE_API_KEY,
+  GMI_API_KEY: process.env.GMI_API_KEY,
   OPENGATEWAY_API_KEY: process.env.OPENGATEWAY_API_KEY,
   OPENGATEWAY_BASE_URL: process.env.OPENGATEWAY_BASE_URL,
   OPENCODE_API_KEY: process.env.OPENCODE_API_KEY,
@@ -530,6 +531,7 @@ beforeEach(async () => {
   delete process.env.MIMO_API_KEY
   delete process.env.LONGCAT_API_KEY
   delete process.env.CLINE_API_KEY
+  delete process.env.GMI_API_KEY
   delete process.env.OPENGATEWAY_API_KEY
   delete process.env.OPENGATEWAY_BASE_URL
   delete process.env.OPENCODE_API_KEY
@@ -578,6 +580,7 @@ afterEach(() => {
     restoreEnv('MIMO_API_KEY', originalEnv.MIMO_API_KEY)
     restoreEnv('LONGCAT_API_KEY', originalEnv.LONGCAT_API_KEY)
     restoreEnv('CLINE_API_KEY', originalEnv.CLINE_API_KEY)
+    restoreEnv('GMI_API_KEY', originalEnv.GMI_API_KEY)
     restoreEnv('OPENGATEWAY_API_KEY', originalEnv.OPENGATEWAY_API_KEY)
     restoreEnv('OPENGATEWAY_BASE_URL', originalEnv.OPENGATEWAY_BASE_URL)
     restoreEnv('OPENCODE_API_KEY', originalEnv.OPENCODE_API_KEY)
@@ -2720,6 +2723,55 @@ test('dedicated-only ClinePass route never falls back to generic OpenAI credenti
   )
 
   expect(captured.authorization).toBeNull()
+})
+
+test('dedicated-only GMI Cloud route never falls back to generic OpenAI credentials', async () => {
+  process.env.CLAUDE_CODE_USE_OPENAI = '1'
+  process.env.OPENAI_BASE_URL = 'https://api.gmi-serving.com/v1'
+  process.env.OPENAI_MODEL = 'deepseek-ai/DeepSeek-V4-Pro'
+  process.env.OPENAI_API_KEY = 'generic-openai-key'
+  process.env.OPENAI_API_KEYS = 'generic-openai-pool-a,generic-openai-pool-b'
+  delete process.env.GMI_API_KEY
+
+  const captured = await captureChatCompletionRequest(
+    'deepseek-ai/DeepSeek-V4-Pro',
+  )
+
+  expect(captured.authorization).toBeNull()
+})
+
+test('GMI Cloud route prefers its dedicated key over a generic OpenAI key', async () => {
+  process.env.CLAUDE_CODE_USE_OPENAI = '1'
+  process.env.OPENAI_BASE_URL = 'https://api.gmi-serving.com/v1'
+  process.env.OPENAI_MODEL = 'deepseek-ai/DeepSeek-V4-Pro'
+  process.env.OPENAI_API_KEY = 'generic-openai-key'
+  process.env.GMI_API_KEY = 'gmi-key'
+
+  const captured = await captureChatCompletionRequest(
+    'deepseek-ai/DeepSeek-V4-Pro',
+  )
+
+  expect(captured.authorization).toBe('Bearer gmi-key')
+  expect(captured.url).toBe('https://api.gmi-serving.com/v1/chat/completions')
+})
+
+test('gmi-cloud provider flag sends the GMI key as Bearer despite settings left by another provider', async () => {
+  process.env.OPENAI_BASE_URL = 'https://api.venice.ai/api/v1'
+  process.env.OPENAI_API_KEY = 'other-provider-secret'
+  process.env.OPENAI_API_FORMAT = 'responses'
+  process.env.OPENAI_AUTH_HEADER = 'api-key'
+  process.env.OPENAI_AUTH_HEADER_VALUE = 'other-provider-secret'
+  process.env.GMI_API_KEY = 'gmi-key'
+
+  const result = applyProviderFlag('gmi-cloud', [])
+  expect(result.error).toBeUndefined()
+
+  const captured = await captureChatCompletionRequest(
+    'deepseek-ai/DeepSeek-V4-Pro',
+  )
+
+  expect(captured.authorization).toBe('Bearer gmi-key')
+  expect(captured.url).toBe('https://api.gmi-serving.com/v1/chat/completions')
 })
 // openaiShim test extraction seam 087 end
 

@@ -29,6 +29,7 @@ import {
   buildXaiOAuthProfileEnv,
   buildXiaomiMimoProfileEnv,
   buildAtlasCloudProfileEnv,
+  buildGmiCloudProfileEnv,
   buildApismartProfileEnv,
   buildVertexProfileEnv,
   clearManagedProfileEnv,
@@ -61,6 +62,7 @@ import {
   isCanonicalLlmtrInferenceBaseUrl,
   isCanonicalCommandcodeInferenceBaseUrl,
   isFireworksBaseUrl,
+  isGmiCloudBaseUrl,
   isLongcatBaseUrl,
   isNearaiBaseUrl,
   isXaiBaseUrl,
@@ -950,6 +952,10 @@ function isProcessEnvAlignedWithProfile(
       ? !includeApiKey ||
         sameOptionalEnvValue(processEnv.ATLAS_CLOUD_API_KEY, profile.apiKey)
       : true) &&
+    (isGmiCloudBaseUrl(profile.baseUrl)
+      ? !includeApiKey ||
+        sameOptionalEnvValue(processEnv.GMI_API_KEY, profile.apiKey)
+      : true) &&
     (isApismartProfile(profile)
       ? !includeApiKey ||
         sameOptionalEnvValue(processEnv.APISMART_API_KEY, profile.apiKey)
@@ -1208,6 +1214,9 @@ export function applyProviderProfileToProcessEnv(
       }
       if (route.routeId === 'atlas-cloud' || normalizedProfileBaseUrl.toLowerCase().includes('atlascloud')) {
         openAIProfileEnv.ATLAS_CLOUD_API_KEY = profile.apiKey
+      }
+      if (route.routeId === 'gmi-cloud' || isGmiCloudBaseUrl(profile.baseUrl)) {
+        openAIProfileEnv.GMI_API_KEY = profile.apiKey
       }
       if (isApismartProfile(profile)) {
         openAIProfileEnv.APISMART_API_KEY = profile.apiKey
@@ -1703,6 +1712,10 @@ function buildOpenAICompatibleStartupEnv(
       if (activeProfile.baseUrl?.toLowerCase().includes('atlascloud')) {
         strictEnv.ATLAS_CLOUD_API_KEY = activeProfile.apiKey
       }
+      // GMI Cloud is dedicatedCredentialsOnly too.
+      if (isGmiCloudBaseUrl(activeProfile.baseUrl)) {
+        strictEnv.GMI_API_KEY = activeProfile.apiKey
+      }
       if (isApismartProfile(activeProfile)) {
         strictEnv.APISMART_API_KEY = activeProfile.apiKey
       }
@@ -1818,6 +1831,9 @@ function buildOpenAICompatibleStartupEnv(
     }
     if (activeProfile.baseUrl?.toLowerCase().includes('atlascloud')) {
       env.ATLAS_CLOUD_API_KEY = activeProfile.apiKey
+    }
+    if (isGmiCloudBaseUrl(activeProfile.baseUrl)) {
+      env.GMI_API_KEY = activeProfile.apiKey
     }
     if (isApismartProfile(activeProfile)) {
       env.APISMART_API_KEY = activeProfile.apiKey
@@ -2019,6 +2035,19 @@ function buildStartupProfileFromActiveProfile(
       if (route.routeId === 'atlas-cloud') {
         const env =
           buildAtlasCloudProfileEnv({
+            model: getPrimaryModel(activeProfile.model),
+            baseUrl: activeProfile.baseUrl,
+            apiKey: activeProfile.apiKey,
+            processEnv: process.env,
+          }) ?? null
+        return env
+          ? { profile: 'openai', env: applySupportedProfileCustomHeaders(activeProfile, env) }
+          : null
+      }
+
+      if (route.routeId === 'gmi-cloud') {
+        const env =
+          buildGmiCloudProfileEnv({
             model: getPrimaryModel(activeProfile.model),
             baseUrl: activeProfile.baseUrl,
             apiKey: activeProfile.apiKey,

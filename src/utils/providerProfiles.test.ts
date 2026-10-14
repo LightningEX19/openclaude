@@ -72,6 +72,7 @@ const RESTORED_KEYS = [
   'VENICE_API_KEY',
   'MIMO_API_KEY',
   'ATLAS_CLOUD_API_KEY',
+  'GMI_API_KEY',
   'APISMART_API_KEY',
   'APISMART_MODEL',
   'API_ROUTE_API_KEY',
@@ -275,6 +276,17 @@ function buildAtlasCloudProfile(overrides: Partial<ProviderProfile> = {}): Provi
     baseUrl: 'https://api.atlascloud.ai/v1',
     model: 'deepseek-ai/deepseek-v4-pro',
     apiKey: 'atlas-test-key',
+    ...overrides,
+  })
+}
+
+function buildGmiCloudProfile(overrides: Partial<ProviderProfile> = {}): ProviderProfile {
+  return buildProfile({
+    provider: 'gmi-cloud',
+    name: 'GMI Cloud',
+    baseUrl: 'https://api.gmi-serving.com/v1',
+    model: 'deepseek-ai/DeepSeek-V4-Pro',
+    apiKey: 'gmi-test-key',
     ...overrides,
   })
 }
@@ -1149,6 +1161,61 @@ describe('applyProviderProfileToProcessEnv', () => {
     expect(process.env.OPENAI_API_KEY).toBe('atlas-test-key')
     expect(process.env.ATLAS_CLOUD_API_KEY).toBe('atlas-test-key')
     expect(getFreshAPIProvider()).toBe('openai')
+  })
+
+  test('gmi cloud profile applies OpenAI-compatible env with GMI_API_KEY mirror', async () => {
+    const { applyProviderProfileToProcessEnv } =
+      await importFreshProviderProfileModules()
+    process.env.CLAUDE_CODE_USE_GEMINI = '1'
+
+    applyProviderProfileToProcessEnv(buildGmiCloudProfile())
+    const { getAPIProvider: getFreshAPIProvider } =
+      await importFreshProvidersModule()
+
+    expect(process.env.CLAUDE_CODE_USE_GEMINI).toBeUndefined()
+    expect(String(process.env.CLAUDE_CODE_USE_OPENAI)).toBe('1')
+    expect(process.env.OPENAI_BASE_URL).toBe('https://api.gmi-serving.com/v1')
+    expect(process.env.OPENAI_MODEL).toBe('deepseek-ai/DeepSeek-V4-Pro')
+    expect(process.env.OPENAI_API_KEY).toBe('gmi-test-key')
+    expect(process.env.GMI_API_KEY).toBe('gmi-test-key')
+    expect(getFreshAPIProvider()).toBe('openai')
+  })
+
+  test('switching from a gmi cloud profile to another provider clears GMI_API_KEY', async () => {
+    const { applyProviderProfileToProcessEnv } =
+      await importFreshProviderProfileModules()
+
+    applyProviderProfileToProcessEnv(buildGmiCloudProfile())
+    expect(process.env.GMI_API_KEY).toBe('gmi-test-key')
+
+    applyProviderProfileToProcessEnv(
+      buildProfile({
+        name: 'OpenAI',
+        baseUrl: 'https://api.openai.com/v1',
+        model: 'gpt-5.5',
+        apiKey: 'sk-openai-test',
+      }),
+    )
+
+    expect(process.env.GMI_API_KEY).toBeUndefined()
+    expect(process.env.OPENAI_API_KEY).toBe('sk-openai-test')
+  })
+
+  test('a generic openai profile pointed at GMI Cloud mirrors its key into GMI_API_KEY', async () => {
+    const { applyProviderProfileToProcessEnv } =
+      await importFreshProviderProfileModules()
+
+    applyProviderProfileToProcessEnv(
+      buildProfile({
+        name: 'GMI via custom OpenAI',
+        baseUrl: 'https://api.gmi-serving.com/v1',
+        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        apiKey: 'gmi-generic-key',
+      }),
+    )
+
+    expect(process.env.OPENAI_BASE_URL).toBe('https://api.gmi-serving.com/v1')
+    expect(process.env.GMI_API_KEY).toBe('gmi-generic-key')
   })
 
   test('apismart profile applies OpenAI-compatible env with APISMART_API_KEY mirror', async () => {
@@ -4094,6 +4161,80 @@ describe('setActiveProviderProfile', () => {
         OPENAI_MODEL: 'deepseek-chat',
         OPENAI_API_KEY: 'sk-deepseek-live',
       })
+    } finally {
+      process.chdir(originalCwd)
+      rmSync(tempDir, { recursive: true, force: true })
+      rmSync(configDir, { recursive: true, force: true })
+    }
+  })
+
+  test('persists a first-class gmi-cloud profile with its dedicated key', async () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-'))
+    const configDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-config-'))
+    process.chdir(tempDir)
+    process.env.CLAUDE_CONFIG_DIR = configDir
+
+    try {
+      const { setActiveProviderProfile } =
+        await importFreshProviderProfileModules()
+      const gmiProfile = buildGmiCloudProfile({ id: 'gmi_cloud_prof' })
+
+      saveMockGlobalConfig(current => ({
+        ...current,
+        providerProfiles: [gmiProfile],
+      }))
+
+      const result = setActiveProviderProfile('gmi_cloud_prof', { configDir })
+      const persisted = JSON.parse(
+        readFileSync(join(configDir, '.openclaude-profile.json'), 'utf8'),
+      )
+
+      expect(result?.id).toBe('gmi_cloud_prof')
+      expect(persisted.profile).toBe('openai')
+      expect(persisted.env.OPENAI_BASE_URL).toBe('https://api.gmi-serving.com/v1')
+      expect(persisted.env.OPENAI_MODEL).toBe('deepseek-ai/DeepSeek-V4-Pro')
+      expect(persisted.env.GMI_API_KEY).toBe('gmi-test-key')
+    } finally {
+      process.chdir(originalCwd)
+      rmSync(tempDir, { recursive: true, force: true })
+      rmSync(configDir, { recursive: true, force: true })
+    }
+  })
+
+  test('persists the GMI key for generic openai profiles targeting GMI Cloud', async () => {
+    const tempDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-'))
+    const configDir = mkdtempSync(join(tmpdir(), 'openclaude-provider-config-'))
+    process.chdir(tempDir)
+    process.env.CLAUDE_CONFIG_DIR = configDir
+
+    try {
+      const { setActiveProviderProfile } =
+        await importFreshProviderProfileModules()
+      const genericGmiProfile = buildProfile({
+        id: 'generic_gmi_prof',
+        name: 'GMI via custom OpenAI',
+        baseUrl: 'https://api.gmi-serving.com/v1',
+        model: 'deepseek-ai/DeepSeek-V4-Pro',
+        apiKey: 'gmi-generic-key',
+      })
+
+      saveMockGlobalConfig(current => ({
+        ...current,
+        providerProfiles: [genericGmiProfile],
+      }))
+
+      const result = setActiveProviderProfile('generic_gmi_prof', {
+        configDir,
+      })
+      const persisted = JSON.parse(
+        readFileSync(join(configDir, '.openclaude-profile.json'), 'utf8'),
+      )
+
+      expect(result?.id).toBe('generic_gmi_prof')
+      expect(persisted.profile).toBe('openai')
+      expect(persisted.env.OPENAI_BASE_URL).toBe('https://api.gmi-serving.com/v1')
+      expect(persisted.env.OPENAI_API_KEY).toBe('gmi-generic-key')
+      expect(persisted.env.GMI_API_KEY).toBe('gmi-generic-key')
     } finally {
       process.chdir(originalCwd)
       rmSync(tempDir, { recursive: true, force: true })

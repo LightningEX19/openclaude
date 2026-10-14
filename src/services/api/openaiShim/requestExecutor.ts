@@ -325,6 +325,7 @@ export async function executeOpenAIRequest(
       requestProcessEnv.VENICE_API_KEY,
       requestProcessEnv.MINIMAX_API_KEY,
       requestProcessEnv.ATLAS_CLOUD_API_KEY,
+      requestProcessEnv.GMI_API_KEY,
       requestProcessEnv.APISMART_API_KEY,
       requestProcessEnv.CONCENTRATE_API_KEY,
       requestProcessEnv.API_ROUTE_API_KEY,

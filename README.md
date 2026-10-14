@@ -112,6 +112,19 @@ OpenClaude is also mirrored to Twigpine:
     <td align="center"><a href="https://concentrate.ai/"><strong>Concentrate</strong></a></td>
     <td align="center"><a href="https://exa.ai/"><strong>Exa</strong></a></td>
   </tr>
+  <tr>
+    <td align="center" width="150" height="80">
+      <a href="https://www.gmicloud.ai/">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="docs/assets/gmi-cloud-logo-dark.svg">
+          <img src="docs/assets/gmi-cloud-logo.svg" alt="GMI Cloud logo" width="120">
+        </picture>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://www.gmicloud.ai/"><strong>GMI Cloud</strong></a></td>
+  </tr>
 </table>
 
 ## Why OpenClaude
@@ -330,6 +343,7 @@ Advanced and source-build guides:
 | Command Code | `/provider` or OpenAI-compatible env vars | Hybrid OpenAI-compatible gateway at `https://api.commandcode.ai/provider/v1`; `/provider` and `--provider commandcode` default to `deepseek/deepseek-v4-flash`, while raw env setup must set `OPENAI_BASE_URL=https://api.commandcode.ai/provider/v1` and `OPENAI_MODEL`; requires `CMD_API_KEY`, `COMMANDCODE_API_KEY`, or the official `COMMAND_CODE_API_KEY` after the route is selected and discovers Chat Completions models from the public catalog. Claude models are unsupported by this Chat Completions integration |
 | ApiSmart | `/provider` or `APISMART_API_KEY` | Uses `https://gw.apismart.ai/v1`, defaults to `DEEPSEEK_V4_FLASH`, and supports optional `APISMART_MODEL` plus authenticated model discovery |
 | API Route | `/provider` or `API_ROUTE_API_KEY` | Uses `https://global.api-route.com/v1`, defaults to `claude-sonnet-4-6`, and supports optional `API_ROUTE_MODEL` plus authenticated model discovery |
+| GMI Cloud | `/provider`, `--provider gmi-cloud`, or env vars | Uses `GMI_API_KEY` at `https://api.gmi-serving.com/v1` and defaults to `deepseek-ai/DeepSeek-V4-Pro`; `--provider gmi-cloud` also reads an optional `GMI_MODEL`, and the model list comes from authenticated discovery |
 | Hicap | `/provider` or OpenAI-compatible env vars | Uses `api-key` auth, discovers models from unauthenticated `/models`, and supports Responses mode for `gpt-` models |
 | Fireworks AI | `/provider` or env vars | First-class provider with 276 curated models (DeepSeek, Qwen, Llama, Gemma, and more); uses `FIREWORKS_API_KEY` |
 | LongCat | `/provider` or env vars | Meituan LongCat OpenAI-compatible API at `https://api.longcat.chat/openai/v1`; uses `LONGCAT_API_KEY` and defaults to `LongCat-2.0` |
@@ -338,7 +352,7 @@ Advanced and source-build guides:
 | GitHub Models | `/onboard-github` | Interactive onboarding with saved credentials |
 | Codex OAuth | `/provider` | Opens ChatGPT sign-in in your browser and stores Codex credentials securely |
 | Codex | `/provider` | Uses existing Codex CLI auth, OpenClaude secure storage, or env credentials |
-| Twigpine Opengateway | Startup default, `/provider`, or env vars | Smart gateway at `https://opengateway.gitlawb.com/v1`; requires an API key from https://gitlawb.com/opengateway/keys and routes Xiaomi MiMo and GMI Cloud partner models by `OPENAI_MODEL` |
+| Twigpine Opengateway | Startup default, `/provider`, or env vars | Smart gateway at `https://opengateway.gitlawb.com/v1`; requires an API key from https://gitlawb.com/opengateway/keys and routes Xiaomi MiMo and other partner models by `OPENAI_MODEL` |
 | OpenCode Zen | `/provider` or env vars | Pay-as-you-go AI gateway (48 models); uses `OPENCODE_API_KEY` via `https://opencode.ai/zen/v1`; shared key with OpenCode Go |
 | OpenCode Go | `/provider` or env vars | $10/mo subscription for open models (13 models); uses `OPENCODE_API_KEY` via `https://opencode.ai/zen/go/v1`; shared key with OpenCode Zen |
 | Xiaomi MiMo | `/provider` or env vars | OpenAI-compatible API at `https://mimo.mi.com`; uses `MIMO_API_KEY` and defaults to `mimo-v2.5-pro` |

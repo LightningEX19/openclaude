@@ -66,6 +66,16 @@ test('buildInheritedEnvVars forwards an LLMTR credential without inventing route
   expect(envVars).not.toContain('OPENAI_BASE_URL=')
 })
 
+test('buildInheritedEnvVars forwards a GMI Cloud credential without inventing route state', () => {
+  process.env.GMI_API_KEY = 'gmi-key'
+
+  const envVars = buildInheritedEnvVars()
+
+  expect(envVars).toContain('GMI_API_KEY=gmi-key')
+  expect(envVars).not.toContain('CLAUDE_CODE_USE_OPENAI=1')
+  expect(envVars).not.toContain('OPENAI_BASE_URL=')
+})
+
 test('buildInheritedEnvVars forwards a Command Code credential without inventing route state', () => {
   process.env.CMD_API_KEY = 'cmd-key'
 

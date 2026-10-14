@@ -36,6 +36,7 @@ import {
   isCanonicalConcentrateInferenceBaseUrl,
   isCanonicalLlmtrInferenceBaseUrl,
   isCanonicalCommandcodeInferenceBaseUrl,
+  isGmiCloudBaseUrl,
   resolveActiveRouteIdFromEnv,
 } from '../integrations/routeMetadata.js'
 import { hasUsableOpenAICredential } from '../services/api/credentialPool.js'
@@ -63,6 +64,7 @@ const PREFERRED_PROVIDER_ORDER = [
   'minimax',
   'venice',
   'atlas-cloud',
+  'gmi-cloud',
   'nearai',
   'fireworks',
   'longcat',
@@ -400,6 +402,9 @@ export function applyProviderFlag(
                       process.env.OPENAI_API_KEY === process.env.ATLAS_CLOUD_API_KEY
                     ? 'atlas-cloud'
                       : process.env.OPENAI_API_KEY !== undefined &&
+                          process.env.OPENAI_API_KEY === process.env.GMI_API_KEY
+                        ? 'gmi-cloud'
+                      : process.env.OPENAI_API_KEY !== undefined &&
                           process.env.OPENAI_API_KEY === process.env.APISMART_API_KEY
                         ? 'apismart'
                         : process.env.OPENAI_API_KEY !== undefined &&
@@ -705,6 +710,41 @@ export function applyProviderFlag(
       // the missing ATLAS_CLOUD_API_KEY instead.
       if (process.env.ATLAS_CLOUD_API_KEY) {
         process.env.OPENAI_API_KEY = process.env.ATLAS_CLOUD_API_KEY
+      } else {
+        delete process.env.OPENAI_API_KEY
+      }
+      break
+
+    case 'gmi-cloud':
+      process.env.CLAUDE_CODE_USE_OPENAI = '1'
+      // GMI Cloud is Bearer-only chat completions: drop an API format or
+      // custom auth header left over from another provider.
+      clearUnsupportedOpenAIShimSettings('gmi-cloud')
+      delete process.env.ANTHROPIC_CUSTOM_HEADERS
+      applyOpenAIBaseUrlDefault(
+        provider,
+        defaultBaseUrl ?? 'https://api.gmi-serving.com/v1',
+      )
+      {
+        const gmiModel = usableProviderModelEnvValue(process.env.GMI_MODEL)
+        if (gmiModel) {
+          process.env.OPENAI_MODEL = gmiModel
+        } else {
+          process.env.OPENAI_MODEL ??=
+            defaultModel ?? 'deepseek-ai/DeepSeek-V4-Pro'
+        }
+      }
+      if (model) process.env.OPENAI_MODEL = model
+      // DedicatedCredentialsOnly: only GMI_API_KEY authenticates this route.
+      // Mirror it into OPENAI_API_KEY for the shared shim transport, and clear
+      // any stale generic key so another provider's credential is never
+      // forwarded to GMI Cloud. A preserved custom base URL never receives
+      // the GMI key.
+      if (
+        process.env.GMI_API_KEY &&
+        isGmiCloudBaseUrl(getConfiguredOpenAIBaseUrl())
+      ) {
+        process.env.OPENAI_API_KEY = process.env.GMI_API_KEY
       } else {
         delete process.env.OPENAI_API_KEY
       }

@@ -261,6 +261,37 @@ test('openai launch preserves persisted dedicated vendor credentials across rest
   assert.equal(env.ATLAS_CLOUD_API_KEY, 'atlas-secret-key')
 })
 
+test('openai launch preserves a persisted GMI Cloud key and prefers a live one', async () => {
+  const persisted = profile('openai', {
+    OPENAI_BASE_URL: 'https://api.gmi-serving.com/v1',
+    OPENAI_MODEL: 'deepseek-ai/DeepSeek-V4-Pro',
+    OPENAI_API_KEY: 'gmi-old-key',
+    GMI_API_KEY: 'gmi-old-key',
+  })
+
+  const restarted = await buildLaunchEnv({
+    profile: 'openai',
+    persisted,
+    goal: 'coding',
+    processEnv: {},
+  })
+
+  assert.equal(restarted.OPENAI_BASE_URL, 'https://api.gmi-serving.com/v1')
+  assert.equal(restarted.OPENAI_MODEL, 'deepseek-ai/DeepSeek-V4-Pro')
+  assert.equal(restarted.GMI_API_KEY, 'gmi-old-key')
+
+  const rotated = await buildLaunchEnv({
+    profile: 'openai',
+    persisted,
+    goal: 'coding',
+    processEnv: {
+      GMI_API_KEY: 'gmi-rotated-key',
+    },
+  })
+
+  assert.equal(rotated.GMI_API_KEY, 'gmi-rotated-key')
+})
+
 test('openai launch preserves persisted ApiSmart dedicated credentials across restart', async () => {
   const env = await buildLaunchEnv({
     profile: 'openai',

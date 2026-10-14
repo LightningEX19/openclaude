@@ -401,6 +401,23 @@ export function isFireworksBaseUrl(value: string | undefined): boolean {
   }
 }
 
+/**
+ * Checks whether the given URL value targets the GMI Cloud inference API
+ * by matching the hostname against `api.gmi-serving.com`.
+ */
+export function isGmiCloudBaseUrl(value: string | undefined): boolean {
+  const trimmed = value?.trim()
+  if (!trimmed) {
+    return false
+  }
+
+  try {
+    return new URL(trimmed).hostname.toLowerCase() === 'api.gmi-serving.com'
+  } catch {
+    return false
+  }
+}
+
 export function isLongcatBaseUrl(value: string | undefined): boolean {
   const trimmed = value?.trim()
   if (!trimmed) {
