@@ -32,7 +32,10 @@ OpenClaude is also mirrored to Twigpine:
   <tr>
     <td align="center" width="150" height="80">
       <a href="https://twigpine.com">
-        <img src="https://twigpine.com/logo.png" alt="Twigpine logo" width="72">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="https://twigpine.com/logo-dark.png">
+          <img src="https://twigpine.com/logo.png" alt="Twigpine logo" width="72">
+        </picture>
       </a>
     </td>
     <td align="center" width="150" height="80">
