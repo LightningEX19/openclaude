@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { createHash, randomUUID } from 'node:crypto'
+import { pbkdf2Sync, randomUUID } from 'node:crypto'
 
 import { logForDebugging } from '../../utils/debug.js'
 import { getClaudeConfigHomeDir } from '../../utils/envUtils.js'
@@ -569,7 +569,14 @@ function toCheckoutState(state: AimlapiPersistedTopup): AimlapiCheckoutState {
  * receipt or, worse, by colliding across different keys.
  */
 export function aimlapiByKeyIdentity(apiKey: string): string {
-  return `key:${createHash('sha256').update(apiKey.trim()).digest('hex')}`
+  const derived = pbkdf2Sync(
+    apiKey.trim(),
+    'aimlapi-by-key-identity-v1',
+    210_000,
+    32,
+    'sha256',
+  )
+  return `key:${derived.toString('hex')}`
 }
 
 /**
