@@ -7,7 +7,7 @@ import {
   writeFileSync,
 } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { pbkdf2Sync, randomUUID } from 'node:crypto'
+import { createHash, createHmac, randomUUID } from 'node:crypto'
 
 import { logForDebugging } from '../../utils/debug.js'
 import { getClaudeConfigHomeDir } from '../../utils/envUtils.js'
@@ -557,6 +557,8 @@ function toCheckoutState(state: AimlapiPersistedTopup): AimlapiCheckoutState {
   }
 }
 
+const BY_KEY_IDENTITY_LABEL = 'aimlapi-by-key-identity-v2'
+
 /**
  * Stable, non-secret identity for a by-key checkout intent: a saved-profile
  * or env-sourced credential has no account email to key the intent on (the
@@ -567,16 +569,54 @@ function toCheckoutState(state: AimlapiPersistedTopup): AimlapiCheckoutState {
  * maintained hash computation could silently drift (a different algorithm,
  * different trimming) and break the match either by never matching a real
  * receipt or, worse, by colliding across different keys.
+ *
+ * An HMAC keyed BY the credential over a fixed label, not a plain digest of
+ * it. It is cheap enough to compute on the interactive path (a deliberately
+ * slow KDF here would stall Ink before the async lock is even reached), and
+ * an API key is already high-entropy, so a work factor would add latency
+ * without making the fingerprint any harder to reverse.
  */
 export function aimlapiByKeyIdentity(apiKey: string): string {
-  const derived = pbkdf2Sync(
-    apiKey.trim(),
-    'aimlapi-by-key-identity-v1',
-    210_000,
-    32,
-    'sha256',
-  )
-  return `key:${derived.toString('hex')}`
+  return `key:${createHmac('sha256', apiKey.trim()).update(BY_KEY_IDENTITY_LABEL).digest('hex')}`
+}
+
+/**
+ * The plain SHA-256 fingerprint aimlapiByKeyIdentity produced before it moved
+ * to HMAC. Never written; only recognized, so a by-key receipt persisted by an
+ * earlier version (a settled-but-unsaved top-up, or a checkout interrupted
+ * mid-flight) is still adopted after upgrading instead of being stranded
+ * behind claimTopupStateOperation's refusal to replace it. Remove once such
+ * receipts can no longer be on disk.
+ */
+function legacyAimlapiByKeyIdentity(apiKey: string): string {
+  return `key:${createHash('sha256').update(apiKey.trim()).digest('hex')}`
+}
+
+/**
+ * Upgrade the stored by-key receipt for `apiKey` from the legacy identity to
+ * the current one, under the caller's lock, and return the (possibly
+ * rewritten) record. Every CAS after the claim keys on the intent's current
+ * identity, so the record has to be rewritten rather than merely matched.
+ * Leaves the record alone while a mint/exchange lease on it is live: that
+ * holder's eventual CAS save still expects the identity it claimed under.
+ */
+function migrateLegacyByKeyIdentityUnlocked(apiKey: string): AimlapiPersistedTopup | null {
+  const current = readAimlapiTopupStateUnlocked()
+  const trimmedApiKey = apiKey.trim()
+  if (
+    !current ||
+    !trimmedApiKey ||
+    current.email !== legacyAimlapiByKeyIdentity(trimmedApiKey) ||
+    hasLiveMintOrExchangeLease(current)
+  ) {
+    return current
+  }
+  const migrated: AimlapiPersistedTopup = {
+    ...current,
+    email: aimlapiByKeyIdentity(trimmedApiKey),
+  }
+  writeAimlapiTopupStateUnlocked(migrated)
+  return migrated
 }
 
 /**
@@ -602,14 +642,16 @@ export function aimlapiByKeyIdentity(apiKey: string): string {
  * different env credentials' keyless receipts apart, and would let checking
  * credential B's balance delete credential A's still-unrecovered receipt.
  * The identity fingerprint is present and stable for a by-key receipt
- * regardless of whether its key ended up stored, so it works for both.
+ * regardless of whether its key ended up stored, so it works for both. A
+ * receipt still carrying the legacy fingerprint is upgraded first, so one left
+ * behind by an earlier version is recognized too.
  */
 export function reconcileSettledAimlapiTopupStateAsync(apiKey: string): Promise<void> {
   const trimmedApiKey = apiKey.trim()
   if (!trimmedApiKey) return Promise.resolve()
   const identity = aimlapiByKeyIdentity(trimmedApiKey)
   return withStateLockAsync(() => {
-    const current = readAimlapiTopupStateUnlocked()
+    const current = migrateLegacyByKeyIdentityUnlocked(trimmedApiKey)
     if (!current?.settled || current.email !== identity) return
     rmSync(statePath(), { force: true })
   })
@@ -873,6 +915,8 @@ function recordCheckoutSessionOperation(state: AimlapiPersistedTopup): AimlapiCh
   return toCheckoutState(recorded)
 }
 
+type ClaimTopupStateOptions = { abandonExisting?: boolean; byKeyApiKey?: string }
+
 /**
  * Adopt the stored checkout for this intent, or start a new one. This is a single
  * slot, so claiming a DIFFERENT intent would replace the stored record. That is
@@ -890,10 +934,15 @@ function recordCheckoutSessionOperation(state: AimlapiPersistedTopup): AimlapiCh
  * (e.g. a re-edited amount the user chose to submit anyway). The overwrite still
  * happens under this same lock acquisition, so the caller never observes a
  * window where the slot is cleared but not yet re-claimed.
+ *
+ * `byKeyApiKey` is the credential a by-key intent's identity was derived from
+ * (see aimlapiByKeyIdentity). With it, a receipt for that credential persisted
+ * under the legacy identity is upgraded before matching, so re-running the
+ * same top-up after upgrading still resumes it.
  */
 export function claimAimlapiTopupState(
   intent: AimlapiTopupIntent,
-  options: { abandonExisting?: boolean } = {},
+  options: ClaimTopupStateOptions = {},
 ): AimlapiCheckoutState {
   return withStateLock(() => claimTopupStateOperation(intent, options))
 }
@@ -906,16 +955,18 @@ export function claimAimlapiTopupState(
  */
 export function claimAimlapiTopupStateAsync(
   intent: AimlapiTopupIntent,
-  options: { abandonExisting?: boolean } = {},
+  options: ClaimTopupStateOptions = {},
 ): Promise<AimlapiCheckoutState> {
   return withStateLockAsync(() => claimTopupStateOperation(intent, options))
 }
 
 function claimTopupStateOperation(
   intent: AimlapiTopupIntent,
-  options: { abandonExisting?: boolean },
+  options: ClaimTopupStateOptions,
 ): AimlapiCheckoutState {
-  const existing = readAimlapiTopupStateUnlocked()
+  const existing = options.byKeyApiKey
+    ? migrateLegacyByKeyIdentityUnlocked(options.byKeyApiKey)
+    : readAimlapiTopupStateUnlocked()
   if (existing && matchesIntent(existing, intent)) {
     return toCheckoutState(existing)
   }
