@@ -159,6 +159,7 @@ Dependency changes need a clear project benefit — fixing a bug, addressing a s
 - Avoid mixing unrelated cleanup into the same change.
 - Preserve existing repo patterns unless the change is intentionally refactoring them.
 - Add or update tests when the change affects behavior.
+- In timing-sensitive tests, drive timers with Bun's fake timers (`jest.useFakeTimers()` and `jest.advanceTimersByTime()`) instead of racing real delays, and restore real timers during cleanup, so the tests pass in a single-process whole-suite run as well as in the sharded runner.
 - Update docs when setup, commands, or user-facing behavior changes.
 - Website release notes live on GitHub Releases. Do not add manually maintained release-note data to the static site.
 

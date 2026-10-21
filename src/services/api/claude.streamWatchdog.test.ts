@@ -3,6 +3,7 @@ import {
   beforeEach,
   describe,
   expect,
+  jest,
   spyOn,
   test,
 } from 'bun:test'
@@ -279,14 +280,16 @@ async function collectStreamingMessages(
   return messages
 }
 
-function delay(ms: number): Promise<'timeout'> {
-  return new Promise(resolve => {
-    setTimeout(() => resolve('timeout'), ms)
-  })
+function fireStreamWatchdog(signal: AbortSignal): void {
+  // Drive the idle deadline independently of event-loop latency.
+  jest.advanceTimersByTime(24)
+  expect(signal.aborted).toBe(false)
+  jest.advanceTimersByTime(1)
+  expect(signal.aborted).toBe(true)
 }
 
 async function settleForCleanup(promise: Promise<unknown>): Promise<void> {
-  await Promise.race([promise.catch(() => undefined), delay(50)])
+  await promise.catch(() => undefined)
 }
 
 function setTestMacro(): void {
@@ -315,6 +318,7 @@ beforeEach(async () => {
   process.env.CLAUDE_STREAM_IDLE_TIMEOUT_MS = '25'
   process.env.OPENCLAUDE_MAX_RETRIES = '0'
   process.env.VCR_RECORD = '1'
+  jest.useFakeTimers()
 })
 
 afterEach(async () => {
@@ -350,6 +354,7 @@ afterEach(async () => {
       fixturesRoot = undefined
     }
   } finally {
+    jest.useRealTimers()
     releaseSharedMutationLock()
   }
 })
@@ -380,8 +385,8 @@ describe('Claude stream watchdog', () => {
     await wedged.nextStarted
 
     try {
-      const result = await Promise.race([request, delay(250)])
-      expect(result).not.toBe('timeout')
+      fireStreamWatchdog(wedged.abortSignal)
+      const result = await request
       expect(streamModes).toEqual([true, undefined])
       expect(wedged.abortSignal.aborted).toBe(true)
       expect(wedged.returnCalled()).toBe(true)
@@ -482,13 +487,15 @@ describe('Claude stream watchdog', () => {
         error instanceof Error ? error.name : String(error),
       )
     await wedged.nextStarted
-    requestAbort(controller, undefined, {
-      source: 'cancel_keybinding',
-      controllerRole: 'query-root',
-    })
-
     try {
-      const result = await Promise.race([request, delay(150)])
+      jest.advanceTimersByTime(249)
+      expect(wedged.abortSignal.aborted).toBe(false)
+      requestAbort(controller, undefined, {
+        source: 'cancel_keybinding',
+        controllerRole: 'query-root',
+      })
+
+      const result = await request
       expect(result).toBe('resolved')
       expect(streamModes).toEqual([true])
       expect(wedged.abortSignal.aborted).toBe(true)
@@ -536,7 +543,8 @@ describe('Claude stream watchdog', () => {
     )
     await wedged.nextStarted
     try {
-      await Promise.race([request, delay(250)])
+      fireStreamWatchdog(wedged.abortSignal)
+      await request
       const trace = __getInterruptionTraceSnapshotForTests()
       const started = trace.find(
         entry => entry.event === 'claude_stream.fallback_started',
@@ -571,14 +579,11 @@ describe('Claude stream watchdog', () => {
     )
     await wedged.nextStarted
     try {
-      const result = await Promise.race([
-        request.then(
-          () => 'resolved',
-          error => error,
-        ),
-        delay(250),
-      ])
-      expect(result).not.toBe('timeout')
+      fireStreamWatchdog(wedged.abortSignal)
+      await request.then(
+        () => 'resolved',
+        error => error,
+      )
       const settlements = __getInterruptionTraceSnapshotForTests().filter(
         entry => entry.event === 'claude_stream.fallback_settled',
       )
@@ -649,8 +654,9 @@ describe('Claude stream watchdog', () => {
     await wedged.nextStarted
 
     try {
-      const result = await Promise.race([request, delay(250)])
-      expect(result).not.toBe('timeout')
+      fireStreamWatchdog(wedged.abortSignal)
+      await request
+      jest.useRealTimers()
       wedged.rejectPendingNext(new Error('late iterator failure'))
       await new Promise(resolve => setTimeout(resolve, 0))
       expect(unhandledRejections).toEqual([])

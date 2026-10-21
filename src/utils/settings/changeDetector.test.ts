@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, jest, mock, test } from 'bun:test'
 import { normalize } from 'path'
 import {
   acquireSharedMutationLock,
@@ -70,6 +70,7 @@ afterEach(async () => {
     activeDetector = null
     mock.restore()
   } finally {
+    jest.useRealTimers()
     releaseSharedMutationLock()
   }
 })
@@ -103,6 +104,7 @@ describe('settings change detector fanout batching', () => {
       deletionGrace: 1,
       settingsDebounce: 5,
     })
+    jest.useFakeTimers()
 
     const emitted: SettingSource[] = []
     const unsubscribe = detector.subscribe(source => {
@@ -112,7 +114,13 @@ describe('settings change detector fanout batching', () => {
     detector._handleDeleteForTesting(pathsBySource.userSettings!)
     detector._handleDeleteForTesting(pathsBySource.projectSettings!)
 
-    await sleep(30)
+    // Deletion hooks schedule a separate debounce after the grace period.
+    jest.advanceTimersByTime(1)
+    await Promise.resolve()
+    jest.advanceTimersByTime(4)
+    expect(resetSettingsCache).not.toHaveBeenCalled()
+    expect(emitted).toEqual([])
+    jest.advanceTimersByTime(1)
 
     expect(resetSettingsCache).toHaveBeenCalledTimes(1)
     expect(emitted).toEqual(['userSettings', 'projectSettings'])
