@@ -12,7 +12,7 @@ Then open PowerShell and check it:
 
 ```powershell
 node --version
-npm --version
+npm.cmd --version
 ```
 
 ## 2. Install OpenClaude
@@ -50,12 +50,12 @@ fork build above. Installing both globally can replace the `openclaude`
 command link, so choose one method.
 
 ```powershell
-npm install -g @twigpine/openclaude@latest
+npm.cmd install -g @twigpine/openclaude@latest
 ```
 
-Update the published release with `npm update -g @twigpine/openclaude`. Remove
-it with `npm uninstall -g @twigpine/openclaude`; these commands do not update
-or remove the fork checkout.
+Update the published release with `npm.cmd update -g @twigpine/openclaude`.
+Remove it with `npm.cmd uninstall -g @twigpine/openclaude`; these commands do
+not update or remove the fork checkout.
 
 Upgrading from `@gitlawb/openclaude`? The package moved to the `@twigpine`
 scope and the old one is no longer updated. npm will not install one over the
@@ -63,8 +63,8 @@ other because both provide the `openclaude` command, so remove the old package
 first:
 
 ```powershell
-npm uninstall -g @gitlawb/openclaude
-npm install -g @twigpine/openclaude@latest
+npm.cmd uninstall -g @gitlawb/openclaude
+npm.cmd install -g @twigpine/openclaude@latest
 ```
 
 If you set up the optional PowerShell aliases, your `$PROFILE` still loads them
@@ -82,7 +82,7 @@ $env:CLAUDE_CODE_USE_OPENAI="1"
 $env:OPENAI_API_KEY="sk-your-key-here"
 $env:OPENAI_MODEL="gpt-4o"
 
-openclaude
+openclaude.cmd
 ```
 
 ### Option B: DeepSeek
@@ -93,7 +93,7 @@ $env:OPENAI_API_KEY="sk-your-key-here"
 $env:OPENAI_BASE_URL="https://api.deepseek.com/v1"
 $env:OPENAI_MODEL="deepseek-v4-flash"
 
-openclaude
+openclaude.cmd
 ```
 
 Use `deepseek-v4-pro` when you want the stronger model. `deepseek-chat` and `deepseek-reasoner` still work as DeepSeek's legacy API aliases.
@@ -113,7 +113,7 @@ $env:CLAUDE_CODE_USE_OPENAI="1"
 $env:OPENAI_BASE_URL="http://localhost:11434/v1"
 $env:OPENAI_MODEL="llama3.1:8b"
 
-openclaude
+openclaude.cmd
 ```
 
 No API key is needed for Ollama local models.
@@ -152,7 +152,7 @@ $env:OPENAI_BASE_URL="http://localhost:1234/v1"
 $env:OPENAI_MODEL="your-model-name"
 # $env:OPENAI_API_KEY="lmstudio"  # optional: some users need a dummy key
 
-openclaude
+openclaude.cmd
 ```
 
 Replace `your-model-name` with the model name shown in LM Studio.
@@ -179,7 +179,7 @@ OpenClaude. Include `/v1` in the custom base URL.
 If you prefer to keep your keys in a `.env` file instead of exporting them individually, note that OpenClaude does not load `.env` files automatically. You must explicitly pass it:
 
 ```powershell
-openclaude --provider-env-file .env
+openclaude.cmd --provider-env-file .env
 ```
 
 Keep `.env` out of git because it contains secrets.
@@ -190,7 +190,7 @@ The explicit loader accepts provider/setup variables. Set runtime/debug variable
 Close PowerShell, open a new one, and try again:
 
 ```powershell
-openclaude
+openclaude.cmd
 ```
 
 If PowerShell still says `openclaude` is not recognized, npm's global bin
@@ -198,7 +198,7 @@ folder may be missing from your user `Path`. Add it, then open a new
 PowerShell window:
 
 ```powershell
-$npmPrefix = npm config get prefix
+$npmPrefix = npm.cmd config get prefix
 $currentUserPath = [Environment]::GetEnvironmentVariable("Path", "User")
 
 if (($currentUserPath -split ';') -notcontains $npmPrefix) {
@@ -238,13 +238,13 @@ Check the basics:
 ## 6. Updating OpenClaude
 
 ```powershell
-npm install -g @twigpine/openclaude@latest
+npm.cmd install -g @twigpine/openclaude@latest
 ```
 
 ## 7. Uninstalling OpenClaude
 
 ```powershell
-npm uninstall -g @twigpine/openclaude
+npm.cmd uninstall -g @twigpine/openclaude
 ```
 
 

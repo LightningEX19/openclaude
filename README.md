@@ -472,4 +472,4 @@ OpenClaude originated from the Claude Code codebase and has since been substanti
 
 ## License
 
-MIT for OpenClaude contributors' modifications; the derived Claude Code remains Anthropic's.
+MIT for OpenClaude contributors' modifications where legally permissible; the derived Claude Code remains Anthropic's.

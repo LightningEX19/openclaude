@@ -136,14 +136,17 @@ test('reports when the Llama for Windows server has no models', async () => {
 
 test('saves the selected model with the Llama for Windows route', async () => {
   probeResult = { state: 'ready', models: ['test-model'] }
+  const previousBaseUrl = process.env.LLAMA_WINDOWS_BASE_URL
+  delete process.env.LLAMA_WINDOWS_BASE_URL
   let saved:
     | { profile: ProviderProfile; env: ProfileEnv }
     | undefined
-  const ui = await renderLlamaStep((profile, env) => {
-    saved = { profile, env }
-  })
+  let ui: Awaited<ReturnType<typeof renderLlamaStep>> | undefined
 
   try {
+    ui = await renderLlamaStep((profile, env) => {
+      saved = { profile, env }
+    })
     await waitForOutput(ui.getOutput, 'test-model')
     ui.stdin.write('1')
     const deadline = Date.now() + 2500
@@ -159,6 +162,11 @@ test('saves the selected model with the Llama for Windows route', async () => {
       },
     })
   } finally {
-    await ui.dispose()
+    await ui?.dispose()
+    if (previousBaseUrl === undefined) {
+      delete process.env.LLAMA_WINDOWS_BASE_URL
+    } else {
+      process.env.LLAMA_WINDOWS_BASE_URL = previousBaseUrl
+    }
   }
 })
