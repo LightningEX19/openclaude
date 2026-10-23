@@ -3,8 +3,15 @@ import {
   acquireSharedMutationLock,
   releaseSharedMutationLock,
 } from '../test/sharedMutationLock.js'
-import * as realDeviceFlow from '../services/github/deviceFlow.js'
-import * as realSecureStorage from './secureStorage/index.js'
+
+// Module namespaces are repointed by mock.module; retain the actual exports.
+const nonce = `${Date.now()}-${Math.random()}`
+const realDeviceFlow = {
+  ...await import(`../services/github/deviceFlow.js?real=${nonce}`),
+}
+const realSecureStorage = {
+  ...await import(`./secureStorage/index.js?real=${nonce}`),
+}
 
 async function importFreshModule() {
   mock.restore()
@@ -174,6 +181,8 @@ describe('refreshCopilotTokenOn401', () => {
   afterEach(() => {
     try {
       mock.restore()
+      mock.module('./secureStorage/index.js', () => realSecureStorage)
+      mock.module('../services/github/deviceFlow.js', () => realDeviceFlow)
       for (const [k, v] of Object.entries(orig)) {
         if (v === undefined) {
           delete process.env[k as keyof typeof orig]
