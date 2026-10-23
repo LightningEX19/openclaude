@@ -17,6 +17,22 @@ npm --version
 
 ## 2. Install OpenClaude
 
+### Install the Llama for Windows fork build
+
+For the fork build with native Llama for Windows setup, paste this into
+PowerShell. It requires Node.js 22+ and Git, clones the fork to
+`%LOCALAPPDATA%\OpenClaude-Fork`, builds it, and adds the `openclaude` command
+to npm's global command path:
+
+```powershell
+irm https://raw.githubusercontent.com/LightningEX19/openclaude/lightningex19-llama-windows-provider/scripts/windows/install-openclaude.ps1 | iex
+```
+
+After it finishes, start OpenClaude with `openclaude`. To configure Llama for
+Windows, run `/provider` and choose **Llama for Windows**.
+
+### Install the published OpenClaude release
+
 ```powershell
 npm install -g @twigpine/openclaude@latest
 ```
@@ -123,7 +139,19 @@ Replace `your-model-name` with the model name shown in LM Studio.
 
 No API key is needed for LM Studio local models (but uncomment the `OPENAI_API_KEY` line if you hit auth errors).
 
-### Option E: Using a .env file (Optional)
+### Option E: Llama for Windows
+
+Install [Llama for Windows](https://github.com/ggml-org/Llama-Windows), start
+the tray app, and load a model. Its local OpenAI-compatible server uses
+`127.0.0.1:9931` by default.
+
+Run `/provider`, choose **Llama for Windows**, then select one of the models
+reported by its server. OpenClaude uses `http://127.0.0.1:9931/v1` and does
+not require an API key. If you changed the app's listen address or port, set
+`$env:LLAMA_WINDOWS_BASE_URL="http://127.0.0.1:8080/v1"` before running
+OpenClaude. Include `/v1` in the custom base URL.
+
+### Option F: Using a .env file (Optional)
 
 If you prefer to keep your keys in a `.env` file instead of exporting them individually, note that OpenClaude does not load `.env` files automatically. You must explicitly pass it:
 
