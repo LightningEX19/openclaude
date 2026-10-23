@@ -1,4 +1,3 @@
-
 # OpenClaude
 
 OpenClaude is an open-source coding-agent CLI for cloud and local model providers. This fork's main addition is native support for **Llama for Windows**, so you can run llama.cpp models locally without installing Ollama or LM Studio. Ollama, LM Studio, and other providers remain supported.
