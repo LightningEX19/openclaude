@@ -19,8 +19,9 @@ npm --version
 
 ### Install the Llama for Windows fork build
 
-For the fork build with native Llama for Windows setup, paste this into
-PowerShell. It requires Node.js 22+ and Git, clones the fork to
+Choose one installation method below. To use the fork's native Llama for
+Windows integration, paste this into PowerShell. It requires Node.js 22+ and
+Git, clones the fork to
 `%LOCALAPPDATA%\OpenClaude-Fork`, builds it, and adds the `openclaude` command
 to npm's global command path:
 
@@ -28,14 +29,33 @@ to npm's global command path:
 irm https://raw.githubusercontent.com/LightningEX19/openclaude/lightningex19-llama-windows-provider/scripts/windows/install-openclaude.ps1 | iex
 ```
 
-After it finishes, start OpenClaude with `openclaude`. To configure Llama for
-Windows, run `/provider` and choose **Llama for Windows**.
+After it finishes, start OpenClaude with `openclaude.cmd` (or `openclaude` if
+PowerShell script execution is enabled). To configure Llama for Windows, run
+`/provider` and choose **Llama for Windows**.
+
+To update this fork installation, rerun the same installer; it updates the
+checkout only when it has no local changes. To remove its global command link,
+open PowerShell in `%LOCALAPPDATA%\OpenClaude-Fork` and run:
+
+```powershell
+npm.cmd unlink -g
+```
+
+This removes the command link, not the fork checkout or your local files.
 
 ### Install the published OpenClaude release
+
+Use this instead if you want the published release; it is separate from the
+fork build above. Installing both globally can replace the `openclaude`
+command link, so choose one method.
 
 ```powershell
 npm install -g @twigpine/openclaude@latest
 ```
+
+Update the published release with `npm update -g @twigpine/openclaude`. Remove
+it with `npm uninstall -g @twigpine/openclaude`; these commands do not update
+or remove the fork checkout.
 
 Upgrading from `@gitlawb/openclaude`? The package moved to the `@twigpine`
 scope and the old one is no longer updated. npm will not install one over the
@@ -140,6 +160,9 @@ Replace `your-model-name` with the model name shown in LM Studio.
 No API key is needed for LM Studio local models (but uncomment the `OPENAI_API_KEY` line if you hit auth errors).
 
 ### Option E: Llama for Windows
+
+Llama for Windows requires Windows 11. If you are on Windows 10, use another
+local backend such as Ollama or LM Studio.
 
 Install [Llama for Windows](https://github.com/ggml-org/Llama-Windows), start
 the tray app, and load a model. Its local OpenAI-compatible server uses

@@ -1115,7 +1115,7 @@ function OllamaModelStep({
   )
 }
 
-function LlamaWindowsModelStep({
+export function LlamaWindowsModelStep({
   onSave,
   onBack,
   onCancel,

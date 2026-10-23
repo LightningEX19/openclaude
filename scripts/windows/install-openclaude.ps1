@@ -45,17 +45,17 @@ if (Test-Path $installDirectory) {
 
 Push-Location $installDirectory
 try {
-  npx --yes bun@1.4.3 install --frozen-lockfile
+  npx.cmd --yes bun@1.4.3 install --frozen-lockfile
   if ($LASTEXITCODE -ne 0) {
     throw 'Dependency installation failed.'
   }
 
-  npx --yes bun@1.4.3 run build
+  npx.cmd --yes bun@1.4.3 run build
   if ($LASTEXITCODE -ne 0) {
     throw 'OpenClaude build failed.'
   }
 
-  npm link
+  npm.cmd link
   if ($LASTEXITCODE -ne 0) {
     throw 'Could not link OpenClaude into the global npm command path.'
   }
@@ -64,5 +64,5 @@ try {
 }
 
 Write-Host ''
-Write-Host 'OpenClaude is installed. Start it with: openclaude'
+Write-Host 'OpenClaude is installed. Start it with: openclaude.cmd (or openclaude if PowerShell script execution is enabled).'
 Write-Host 'To configure Llama for Windows, run /provider and choose Llama for Windows.'

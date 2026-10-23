@@ -221,26 +221,24 @@ For Ollama, OpenClaude uses Ollama's native chat API and requests a 32768-token
 context window on each chat request so same-session history is not silently
 truncated by Ollama's OpenAI-compatible shim. Set `OPENCLAUDE_OLLAMA_NUM_CTX`
 or `OLLAMA_CONTEXT_LENGTH` if you need a different request-level context size.
-See Advanced Setup for
-verification with `ollama ps`.
+See `docs/advanced-setup.md` for verification with `ollama ps`.
 
 ## Setup Guides
 
 Beginner-friendly guides:
 
-- Non-Technical Setup
-- Windows Quick Start
-- macOS / Linux Quick Start
+- Non-Technical Setup: `docs/non-technical-setup.md`
+- Windows Quick Start: `docs/quick-start-windows.md`
+- macOS / Linux Quick Start: `docs/quick-start-mac-linux.md`
 
 Advanced and source-build guides:
 
-- Advanced Setup
-- Smart Auto-Routing
-- Agent Routing and Step Limits
-- Headless gRPC Server
-- Repo Map (codebase intelligence)
-- Skills
-- Android Install
+- Advanced Setup: `docs/advanced-setup.md`
+- Smart Auto-Routing: `docs/smart-routing.md`
+- Agent Routing and Step Limits: `docs/agent-routing.md`
+- Headless gRPC Server: `docs/grpc-server.md`
+- Repo Map (codebase intelligence): `docs/repo-map.md`
+- Skills: `docs/skills.md`
 
 ## Supported Providers
 
@@ -321,7 +319,7 @@ OpenClaude supports multiple providers, but behavior is not identical across all
 - Twigpine Opengateway is the fresh-install startup default and requires an API key. It uses one OpenAI-compatible base URL; switch between `mimo-*` and `google/gemini-3.1-flash-lite-preview` with `/model`, and do not pin the base URL to `/v1/xiaomi-mimo`.
 - Z.AI GLM Coding Plan uses the Coding Plan API with `glm-5.2` by default. On that direct route, GLM-5.3-Flash is selectable as `glm-5.3-flash` and accepts image input. Its OpenClaude effort choices are `low`, `high`, and `xhigh`, with `xhigh` requesting Z.AI `max`; GLM-5.3 and the existing GLM-5.2 query controls remain supported. These capabilities are not claimed for gateways that happen to carry the same model name.
 - Xiaomi MiMo uses `api-key` header auth on the direct OpenAI-compatible route and currently does not support `/usage` reporting in OpenClaude
-- GitHub Copilot serializes sub-agent execution by default to reduce Premium Request consumption — see Agent Routing and Step Limits for tuning
+- GitHub Copilot serializes sub-agent execution by default to reduce Premium Request consumption — see `docs/agent-routing.md` for tuning
 
 For best results, use models with strong tool/function calling support.
 
@@ -336,7 +334,7 @@ environment variables:
 - model-only routes that reuse your current provider's credentials
 - built-in agents (`Explore` and `Plan` [feature-gated], `verification` [feature-gated: requires `VERIFICATION_AGENT` + `tengu_hive_evidence`], `code-reviewer` [requires diff inline]) routable by type name
 
-See Agent Routing and Step Limits for the full guide.
+See `docs/agent-routing.md` for the full guide.
 
 ## Web Search and Fetch
 
@@ -475,4 +473,4 @@ OpenClaude originated from the Claude Code codebase and has since been substanti
 
 ## License
 
-MIT for OpenClaude contributors' modifications; the derived Claude Code remains Anthropic's. See more.
+MIT for OpenClaude contributors' modifications; the derived Claude Code remains Anthropic's.
