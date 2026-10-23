@@ -1,7 +1,7 @@
 
 # OpenClaude
 
-OpenClaude is an open-source coding-agent CLI for cloud and local model providers.
+OpenClaude is an open-source coding-agent CLI for cloud and local model providers. This fork's main addition is native support for **Llama for Windows**, so you can run llama.cpp models locally without installing Ollama or LM Studio. Ollama, LM Studio, and other providers remain supported.
 
 Use OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, Atomic Chat, and other supported backends while keeping one terminal-first workflow: prompts, tools, agents, MCP, slash commands, and streaming output.
 
@@ -67,6 +67,28 @@ Inside OpenClaude:
 - run `/provider` for guided provider setup and saved profiles
 - run `/onboard-github` for GitHub Models onboarding
 - run `/search` to choose the web search backend (Exa by default) or add a search API key
+
+### Run Llama for Windows (this fork's main addition)
+
+Install and start `ggml-org/Llama-Windows`, then load a model in its tray app.
+In OpenClaude, run `/provider`, choose **Llama for Windows**, and select one
+of the models it discovers. The default connection is
+`http://127.0.0.1:9931/v1`; no API key is needed. This connects directly to
+the app's llama.cpp server—Ollama and LM Studio are not required.
+
+### Connect another llama.cpp server
+
+Start llama.cpp's OpenAI-compatible server with a GGUF model:
+
+```bash
+llama-server -m /path/to/model.gguf --host 127.0.0.1 --port 8080
+```
+
+Then run `openclaude`, choose **OpenAI-compatible** in `/provider`, and set the
+base URL to `http://127.0.0.1:8080/v1`. Select a model reported by the server.
+If the setup asks for an API key and your local server does not require one,
+enter a placeholder such as `local`; use the configured key if you enabled
+server authentication. Keep `/v1` at the end of the base URL.
 
 > **Note:** OpenClaude does not automatically load project `.env` files. We recommend using the `/provider` command for setup, which saves provider profiles and credentials in `.openclaude-profile.json`. If you prefer environment variables, export them explicitly or run `openclaude --provider-env-file .env` for provider/setup variables. Export runtime/debug knobs from your shell or launcher.
 
@@ -234,6 +256,7 @@ Advanced and source-build guides:
 | ApiSmart | `/provider` or `APISMART_API_KEY` | Defaults to `DEEPSEEK_V4_FLASH` and supports optional `APISMART_MODEL` plus authenticated model discovery |
 | API Route | `/provider` or `API_ROUTE_API_KEY` | Defaults to `claude-sonnet-4-6` and supports optional `API_ROUTE_MODEL` plus authenticated model discovery |
 | GMI Cloud | `/provider`, `--provider gmi-cloud`, or env vars | Uses `GMI_API_KEY` and defaults to `Qwen/Qwen3.8-Max`; `--provider gmi-cloud` also reads optional `GMI_MODEL`, and the model list comes from authenticated discovery |
+| Llama for Windows | `/provider` | This fork's native llama.cpp integration; connects to `http://127.0.0.1:9931/v1` by default, discovers local models, and requires no API key |
 | Hicap | `/provider` or OpenAI-compatible env vars | Uses `api-key` auth, discovers models from unauthenticated `/models`, and supports Responses mode for `gpt-` models |
 | Fireworks AI | `/provider` or env vars | First-class provider with 276 curated models (DeepSeek, Qwen, Llama, Gemma, and more); uses `FIREWORKS_API_KEY` |
 | LongCat | `/provider` or env vars | Meituan LongCat OpenAI-compatible API; uses `LONGCAT_API_KEY` and defaults to `LongCat-2.0` |
