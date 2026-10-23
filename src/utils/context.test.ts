@@ -575,6 +575,7 @@ test('unknown openai-compatible model fallback logs one debug warning and no con
     actualDebugModule,
     'logForDebugging',
   ).mockImplementation((_message, _options) => {})
+  logForDebugging.mockClear()
 
   const originalConsoleError = console.error
   const consoleError = mock(() => {})

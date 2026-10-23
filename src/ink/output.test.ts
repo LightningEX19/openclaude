@@ -71,6 +71,7 @@ function writeFullFrame(output: Output, width: number, height: number): void {
 
 beforeEach(() => {
   logSpy = spyOn(debug, 'logForDebugging').mockImplementation(() => {})
+  logSpy.mockClear()
 })
 
 afterEach(() => {
