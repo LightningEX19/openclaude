@@ -4,8 +4,6 @@ OpenClaude is an open-source coding-agent CLI for cloud and local model provider
 
 Use OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, Atomic Chat, and other supported backends while keeping one terminal-first workflow: prompts, tools, agents, MCP, slash commands, and streaming output.
 
-Quick Start | Setup Guides | Providers | Development | VS Code Extension | Community
-
 ## Why OpenClaude
 
 - One CLI across cloud APIs and local model backends — no per-provider tooling
