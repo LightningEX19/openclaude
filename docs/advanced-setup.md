@@ -533,6 +533,13 @@ for that profile. Query options such as `?reasoning=high` or `?thinking=disabled
 remain in the selected model, but context-limit keys use the model name before
 `?`. For example, `gpt-5.4?reasoning=high` uses the `gpt-5.4` context limit.
 
+Auto-compact is enabled by default. Change **Auto-compact** in `/config` to
+enable or disable proactive compaction; this global setting is saved in
+`~/.openclaude.json`. If an OpenAI-compatible server reports a recognized
+context overflow, OpenClaude compacts the conversation and retries the current
+turn once, including with compatible local servers such as llama.cpp. This
+one-shot recovery also runs when proactive auto-compact is disabled.
+
 ### Web search
 
 [Exa](https://exa.ai) is the default web search backend. With no setup, searches

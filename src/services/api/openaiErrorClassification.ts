@@ -155,6 +155,7 @@ function isContextOverflowMessage(body: string): boolean {
     lower.includes('request too large') ||
     lower.includes('context length') ||
     lower.includes('maximum context') ||
+    lower.includes('available context size') ||
     lower.includes('input length') ||
     lower.includes('payload too large') ||
     lower.includes('prompt is too long')

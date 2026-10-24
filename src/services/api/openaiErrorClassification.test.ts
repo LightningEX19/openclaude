@@ -116,6 +116,16 @@ test('classifies context-overflow responses', () => {
   expect(failure.retryable).toBe(false)
 })
 
+test('classifies available-context-size errors as non-retryable context overflow', () => {
+  const failure = classifyOpenAIHttpFailure({
+    status: 400,
+    body: 'request (8192 tokens) exceeds the available context size (4096 tokens), try increasing it',
+  })
+
+  expect(failure.category).toBe('context_overflow')
+  expect(failure.retryable).toBe(false)
+})
+
 test('401 "token expired" surfaces a re-auth hint, not the generic API-key hint (issue #1042)', () => {
   const failure = classifyOpenAIHttpFailure({
     status: 401,
