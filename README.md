@@ -10,7 +10,6 @@ Use OpenAI-compatible APIs, Gemini, GitHub Models, Codex OAuth, Codex, Ollama, A
 - Guided provider setup and saved profiles with `/provider`
 - Coding-agent workflows in one place: bash, file tools, grep, glob, agents, tasks, MCP, and web tools
 - A bundled VS Code extension for launch integration and theme support
-- A pixel-art hero companion who fires an arrow every time you press Enter (really — see Meet your buddy)
 
 ## Quick Start
 
@@ -296,29 +295,6 @@ Advanced and source-build guides:
 - **Local and remote model backends**: Cloud APIs, local servers, and Apple Silicon local inference
 - **Codebase intelligence (repo map)**: Structural map of the repository ranked by PageRank importance, auto-injected into context when the `REPO_MAP` flag is enabled or the `REPO_MAP` environment variable is set. Inspect with `/repomap` (2048-token default). See docs/repo-map.md for details.
 - **A companion with signature moves**: A truecolor pixel-art hero who lives beside your prompt and reacts when you work. See below.
-
-## Meet Your Buddy
-
-Run `/buddy` to hatch a companion — a truecolor pixel-art hero who stands
-beside your prompt, idles, blinks, and fires their signature move every time
-you submit a message:
-
-```
-/buddy                  hatch (first run) or pet your companion
-/buddy set robinhood    the green archer — arrow shot on every Enter
-/buddy set kaio         gold-haired warrior — charges a full-width energy wave
-/buddy set strawhat     stretchy punch that snaps back
-/buddy set merlin       twinkling sparkle stream
-/buddy set kage         spinning shuriken
-/buddy set ember        dragon fire with a real heat gradient
-/buddy set corsair      cannonball with smoke trail
-/buddy name Robin       rename your companion
-/buddy set random       back to your rolled hero
-```
-
-Companions respect `prefersReducedMotion`, degrade gracefully to line art in
-low-color terminals, and can be silenced with `/buddy mute`. Requires a
-terminal at least 100 columns wide for the full sprite.
 
 ## Provider Notes
 
