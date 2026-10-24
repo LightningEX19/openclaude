@@ -17,25 +17,25 @@ npm --version
 
 ## 2. Install OpenClaude
 
-```bash
-npm install -g @twigpine/openclaude@latest
-```
-
-Upgrading from `@gitlawb/openclaude`? The package moved to the `@twigpine`
-scope and the old one is no longer updated. npm will not install one over the
-other because both provide the `openclaude` command, so remove the old package
-first:
+Install Git and Bun 1.4.4, then clone and build this fork's `main` branch:
 
 ```bash
-npm uninstall -g @gitlawb/openclaude
-npm install -g @twigpine/openclaude@latest
+git clone --depth 1 --branch main https://github.com/LightningEX19/openclaude.git
+cd openclaude
+bun install --frozen-lockfile
+bun run build
+npm link
 ```
 
-On Arch Linux, you can alternatively install OpenClaude via the community-maintained [AUR package](https://aur.archlinux.org/packages/openclaude):
+If you previously installed a registry package, remove it first so it does not
+conflict with the fork's `openclaude` command:
 
 ```bash
-paru -S openclaude
+npm uninstall -g @twigpine/openclaude @gitlawb/openclaude
 ```
+
+For updates and uninstall instructions, see sections 6 and 7 below.
+
 ## 3. Pick One Provider
 
 ### Option A: OpenAI
@@ -169,28 +169,22 @@ Check the basics:
 
 ## 6. Updating OpenClaude
 
-**Via npm:**
-```bash
-npm install -g @twigpine/openclaude@latest
-```
+From the fork checkout directory, run:
 
-**Via AUR:**
 ```bash
-paru
+git pull --ff-only origin main
+bun install --frozen-lockfile
+bun run build
+npm link
 ```
-*(Or use your preferred AUR helper like `yay -Syu`)*
 
 ## 7. Uninstalling OpenClaude
 
-**Via npm:**
 ```bash
-npm uninstall -g @twigpine/openclaude
+npm unlink -g
 ```
-
-**Via AUR (Arch Linux):**
-```bash
-paru -Rns openclaude
-```
+Run this from the fork checkout. It removes the global command link and leaves
+the checkout, settings, and sessions in place.
 
 ## Need Advanced Setup?
 

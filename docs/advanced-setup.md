@@ -4,35 +4,22 @@ This guide is for users who want source builds, Bun workflows, provider profiles
 
 ## Install Options
 
-OpenClaude requires Node.js `>=22.0.0` for npm installs and runtime. Bun is
-only required when building or running from source.
-
-### Option A: npm
-
-```bash
-npm install -g @twigpine/openclaude@latest
-```
-
-### Option B: From source with Bun
-
-Use Bun `1.4.4` for source builds. Older Bun versions can fail during `bun run build`.
+OpenClaude requires Node.js `>=22.0.0`, Git, and Bun `1.4.4` for this fork's
+source build. Install from the `main` branch of
+`LightningEX19/openclaude`:
 
 ```bash
-git clone https://github.com/Twigpine/openclaude.git
+git clone --depth 1 --branch main https://github.com/LightningEX19/openclaude.git
 cd openclaude
 
-bun install
+bun install --frozen-lockfile
 bun run build
 npm link
 ```
 
-### Option C: Run directly with Bun
+### Run directly with Bun
 
 ```bash
-git clone https://github.com/Twigpine/openclaude.git
-cd openclaude
-
-bun install
 bun run dev
 ```
 
@@ -393,20 +380,20 @@ The **OpenClaude VS Code extension** can store the key in Secret Storage and set
 
 ## Optional provider packages
 
-To keep the default `npm i -g @twigpine/openclaude` install small and
-warning-free, a few provider SDKs and the native image library are **not
-bundled**. They are loaded on demand, and the CLI prints an `npm install <pkg>`
+To keep packaged installs small and warning-free, a few provider SDKs and the
+native image library are **not bundled**. They are loaded on demand, and the CLI
+prints an `npm install <pkg>`
 hint (add `-g` for the global CLI) if you enable a feature whose package is
 missing. Install only what you need:
 
-**Image handling note:** default global installs do **not** ship `sharp`. Clipboard paste, drag-and-drop of a local image path, and FileReadTool paths that decode a local file need `npm i -g sharp`. Forwarding an already-encoded image URL/base64 that the API accepts without local decode (passthrough) does not. This opt-in is intentional for published installs; it is not an accidental omission.
+**Image handling note:** packaged installs do **not** ship `sharp`. Clipboard paste, drag-and-drop of a local image path, and FileReadTool paths that decode a local file need `npm i -g sharp`. Forwarding an already-encoded image URL/base64 that the API accepts without local decode (passthrough) does not.
 
 | Feature | Trigger | Install |
 | --- | --- | --- |
 | AWS Bedrock | `CLAUDE_CODE_USE_BEDROCK=1` | `npm i -g @anthropic-ai/bedrock-sdk`. Profile-based auth (`~/.aws/credentials`) additionally needs `@aws-sdk/credential-providers` and `@aws-sdk/client-sts`; model listing needs `@aws-sdk/client-bedrock`. Proxy and skip-auth setups may also need `@aws-sdk/credential-provider-node`, `@smithy/node-http-handler`, or `@smithy/core`. The CLI prints the exact missing package if you hit one. |
 | Azure Foundry | `CLAUDE_CODE_USE_FOUNDRY=1` | `npm i -g @anthropic-ai/foundry-sdk @azure/identity` |
 | Claude on Vertex AI / Gemini ADC | `CLAUDE_CODE_USE_VERTEX=1` / Gemini ADC auth | `npm i -g google-auth-library` |
-| Reading/processing images (clipboard paste, drag-and-drop paths, FileReadTool local decode) | local image decode — **not** pre-encoded URL/base64 passthrough | `npm i -g sharp` (intentionally opt-in; prebuilt releases load it externally only when processing requires it) |
+| Reading/processing images (clipboard paste, drag-and-drop paths, FileReadTool local decode) | local image decode — **not** pre-encoded URL/base64 passthrough | `npm i -g sharp` (intentionally opt-in; packaged builds load it externally only when processing requires it) |
 | Optional error reporting | `SENTRY_DSN` is set | `npm i -g @sentry/node`. Without this package installed, setting `SENTRY_DSN` has no effect and reporting is silently disabled. |
 
 When installing OpenClaude from source (`bun install`), all of these are
@@ -696,8 +683,8 @@ Notes:
   levels used for existing telemetry (see [Runtime Hardening](#runtime-hardening)).
 - Only sanitized, telemetry-safe error messages are sent — never raw error
   messages, which may contain file paths or other identifying information.
-- `@sentry/node` is an optional dev dependency and is **not included** in the
-  default `npm install -g @twigpine/openclaude` install (see
+- `@sentry/node` is an optional dev dependency and is **not included** in
+  packaged installs (see
   [Optional provider packages](#optional-provider-packages)). If you set
   `SENTRY_DSN` without installing it separately, reporting is silently
   disabled (no error, no crash). Install it explicitly with:

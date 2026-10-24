@@ -1,25 +1,28 @@
 # Windows aliases and launchers
 
-This page documents optional PowerShell helper functions for launching OpenClaude on Windows after a global npm install.
+This page documents optional PowerShell helper functions for launching the
+fork build on Windows. Install the fork from `main` using the instructions in
+the Windows quick start before setting up these helpers.
 
-These helpers are designed for the installed package workflow:
+The fork installer links the checked-out `LightningEX19/openclaude` package
+globally. The aliases use that linked checkout:
 
 ~~~powershell
-npm install -g @twigpine/openclaude
+$packageRoot = Join-Path (npm.cmd root -g) "@twigpine/openclaude"
 ~~~
 
-The helpers use the installed `openclaude` CLI command. They do not require a source checkout and do not call source-only `bun run scripts/*.ts` entrypoints.
+The helpers use the installed `openclaude` CLI command.
 
 ## One-time setup
 
 Run this once in PowerShell:
 
 ~~~powershell
-$packageRoot = Join-Path (npm root -g) "@twigpine/openclaude"
+$packageRoot = Join-Path (npm.cmd root -g) "@twigpine/openclaude"
 $aliases = Join-Path $packageRoot "scripts\windows\openclaude-aliases.ps1"
 
 if (-not (Test-Path $aliases)) {
-  throw "Alias script not found at $aliases. Update or reinstall @twigpine/openclaude."
+  throw "Alias script not found at $aliases. Reinstall the fork from its main branch."
 }
 
 if (-not (Test-Path $PROFILE)) {
@@ -42,15 +45,14 @@ Open a new PowerShell window after setup, or dot-source the profile:
 . $PROFILE
 ~~~
 
-### Upgrading from `@gitlawb/openclaude`
+### Reinstalling the fork
 
 The setup above adds a line to `$PROFILE` that loads the helpers from the
-installed package folder. If you ran it while the package was still named
-`@gitlawb/openclaude`, that line points at a folder that no longer exists once
-you switch packages, and every new PowerShell window reports an error.
+linked fork checkout. If you previously used a registry package, remove it
+before installing the fork from `LightningEX19/openclaude`'s `main` branch.
 
-After installing `@twigpine/openclaude`, remove the old line and run the
-one-time setup again:
+If your profile still has an alias path from an older package install, remove
+that line and run the one-time setup again:
 
 ~~~powershell
 (Get-Content $PROFILE) | Where-Object { $_ -notmatch '@gitlawb[\\/]openclaude' } | Set-Content $PROFILE

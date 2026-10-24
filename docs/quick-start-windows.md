@@ -26,7 +26,7 @@ Git, clones the fork to
 to npm's global command path:
 
 ```powershell
-irm https://raw.githubusercontent.com/LightningEX19/openclaude/lightningex19-llama-windows-provider/scripts/windows/install-openclaude.ps1 | iex
+irm https://raw.githubusercontent.com/LightningEX19/openclaude/main/scripts/windows/install-openclaude.ps1 | iex
 ```
 
 After it finishes, start OpenClaude with `openclaude.cmd` (or `openclaude` if
@@ -43,33 +43,17 @@ npm.cmd unlink -g
 
 This removes the command link, not the fork checkout or your local files.
 
-### Install the published OpenClaude release
-
-Use this instead if you want the published release; it is separate from the
-fork build above. Installing both globally can replace the `openclaude`
-command link, so choose one method.
+Do not install the similarly named npm-registry package; it is separate from
+this fork's `main` branch. If you have either registry package installed,
+remove it before installing the fork:
 
 ```powershell
-npm.cmd install -g @twigpine/openclaude@latest
+npm.cmd uninstall -g @twigpine/openclaude @gitlawb/openclaude
 ```
 
-Update the published release with `npm.cmd update -g @twigpine/openclaude`.
-Remove it with `npm.cmd uninstall -g @twigpine/openclaude`; these commands do
-not update or remove the fork checkout.
-
-Upgrading from `@gitlawb/openclaude`? The package moved to the `@twigpine`
-scope and the old one is no longer updated. npm will not install one over the
-other because both provide the `openclaude` command, so remove the old package
-first:
-
-```powershell
-npm.cmd uninstall -g @gitlawb/openclaude
-npm.cmd install -g @twigpine/openclaude@latest
-```
-
-If you set up the optional PowerShell aliases, your `$PROFILE` still loads them
-from the old package folder and will show an error in every new window. See
-[Upgrading from `@gitlawb/openclaude`](windows-aliases-and-launchers.md#upgrading-from-gitlawbopenclaude).
+Your settings and sessions are not removed. If you use optional PowerShell
+aliases, reinstall them using the fork build instructions in
+[Windows aliases and launchers](windows-aliases-and-launchers.md).
 
 ## 3. Pick One Provider
 
@@ -235,16 +219,19 @@ Check the basics:
 - make sure a model is loaded in LM Studio
 - make sure the model name matches what you set in `OPENAI_MODEL`
 
-## 6. Updating OpenClaude
+## 6. Updating the fork from `main`
 
-```powershell
-npm.cmd install -g @twigpine/openclaude@latest
-```
+Rerun the PowerShell installer from section 2. It updates the clean checkout
+from `LightningEX19/openclaude`'s `main` branch, rebuilds it, and relinks the
+global command.
 
 ## 7. Uninstalling OpenClaude
 
+To remove the global command link while keeping the checkout and its files:
+
 ```powershell
-npm.cmd uninstall -g @twigpine/openclaude
+Set-Location "$env:LOCALAPPDATA\OpenClaude-Fork"
+npm.cmd unlink -g
 ```
 
 

@@ -31,7 +31,7 @@ function Invoke-OpenClaude {
     [string[]]$OpenClaudeArgs
   )
 
-  Assert-OpenClaudeCommand -Name "openclaude" -InstallHint "Install with: npm install -g @twigpine/openclaude"
+  Assert-OpenClaudeCommand -Name "openclaude" -InstallHint "Install this fork from LightningEX19/openclaude main using the Windows quick-start installer."
 
   & openclaude @OpenClaudeArgs
 

@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $repository = 'https://github.com/LightningEX19/openclaude.git'
-$branch = 'lightningex19-llama-windows-provider'
+$branch = 'main'
 $installDirectory = Join-Path $env:LOCALAPPDATA 'OpenClaude-Fork'
 
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
@@ -23,13 +23,34 @@ if (Test-Path $installDirectory) {
   }
 
   $currentBranch = git -C $installDirectory branch --show-current
-  if ($LASTEXITCODE -ne 0 -or $currentBranch -ne $branch) {
-    throw "The existing checkout at $installDirectory is not on '$branch'. Move it aside before reinstalling."
+  if ($LASTEXITCODE -ne 0) {
+    throw "Could not inspect the existing checkout at $installDirectory."
   }
 
   $changes = git -C $installDirectory status --porcelain
   if ($LASTEXITCODE -ne 0 -or $changes) {
     throw "The existing checkout has local changes. Preserve or move it before reinstalling: $installDirectory"
+  }
+
+  if ($currentBranch -ne $branch) {
+    if ($currentBranch -ne 'lightningex19-llama-windows-provider') {
+      throw "The existing checkout at $installDirectory is not on '$branch'. Move it aside before reinstalling."
+    }
+
+    git -C $installDirectory fetch origin "refs/heads/$branch:refs/remotes/origin/$branch"
+    if ($LASTEXITCODE -ne 0) {
+      throw 'Could not fetch the fork main branch.'
+    }
+
+    git -C $installDirectory show-ref --verify --quiet "refs/heads/$branch"
+    if ($LASTEXITCODE -eq 0) {
+      git -C $installDirectory switch $branch
+    } else {
+      git -C $installDirectory switch --track --create $branch "origin/$branch"
+    }
+    if ($LASTEXITCODE -ne 0) {
+      throw 'Could not switch the existing checkout to the fork main branch.'
+    }
   }
 
   git -C $installDirectory pull --ff-only origin $branch
@@ -45,12 +66,12 @@ if (Test-Path $installDirectory) {
 
 Push-Location $installDirectory
 try {
-  npx.cmd --yes bun@1.4.3 install --frozen-lockfile
+  npx.cmd --yes bun@1.4.4 install --frozen-lockfile
   if ($LASTEXITCODE -ne 0) {
     throw 'Dependency installation failed.'
   }
 
-  npx.cmd --yes bun@1.4.3 run build
+  npx.cmd --yes bun@1.4.4 run build
   if ($LASTEXITCODE -ne 0) {
     throw 'OpenClaude build failed.'
   }

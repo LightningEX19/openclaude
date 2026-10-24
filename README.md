@@ -16,43 +16,59 @@ Quick Start | Setup Guides | Providers | Development | VS Code Extension | Commu
 
 ## Quick Start
 
-### Install
+### Install this fork
 
-OpenClaude requires Node.js `>=22.0.0` for npm installs and runtime. Bun is
-only needed for source builds and local development.
+OpenClaude requires Node.js `>=22.0.0` and Git. The Windows installer fetches
+Bun `1.4.4` to build the app; macOS and Linux source installs also need Bun
+`1.4.4`. These commands clone **LightningEX19/openclaude `main`**, not the
+`@twigpine/openclaude` npm package.
 
-```bash
-npm install -g @twigpine/openclaude@latest
+Windows PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/LightningEX19/openclaude/main/scripts/windows/install-openclaude.ps1 | iex
 ```
 
-**Upgrading from `@gitlawb/openclaude`?** The package moved to the `@twigpine`
-scope and the old one is no longer updated. Both packages provide the
-`openclaude` command, so npm refuses to install one over the other — remove
-the old one first:
+macOS or Linux:
 
 ```bash
-npm uninstall -g @gitlawb/openclaude
-npm install -g @twigpine/openclaude@latest
+git clone --depth 1 --branch main https://github.com/LightningEX19/openclaude.git
+cd openclaude
+bun install --frozen-lockfile
+bun run build
+npm link
 ```
 
-Your settings and sessions (`~/.openclaude` and `~/.openclaude.json`) are not
-touched. Don't use `--force` to install over the old package instead: a later
-uninstall of the old one would then remove the `openclaude` command. If that
-happens, uninstall `@twigpine/openclaude` and install it again.
+The Windows installer updates from the same `main` branch when rerun. On
+macOS or Linux, update from the checkout directory with:
 
-If you're on Arch Linux, you can install OpenClaude from the community-maintained AUR package:
 ```bash
-paru -S openclaude
+git pull --ff-only origin main
+bun install --frozen-lockfile
+bun run build
+npm link
 ```
+
+If you previously installed an npm-registry copy, remove it first with
+`npm uninstall -g @twigpine/openclaude @gitlawb/openclaude`. This removes the
+old command links, not your settings or sessions (`~/.openclaude` and
+`~/.openclaude.json`).
 
 If the install later reports `ripgrep not found`, install ripgrep system-wide and confirm `rg --version` works in the same terminal before starting OpenClaude.
 
-**Verify / troubleshoot installed version:**
+**Verify the command and source checkout.** On macOS or Linux:
 
 ```bash
 openclaude --version
-npm view @twigpine/openclaude dist-tags
-npm install -g @twigpine/openclaude@latest
+git -C openclaude branch --show-current
+```
+
+The checkout should report `main`. On Windows, run this in PowerShell; the
+installer stores the checkout in `%LOCALAPPDATA%\OpenClaude-Fork`:
+
+```powershell
+openclaude.cmd --version
+git -C "$env:LOCALAPPDATA\OpenClaude-Fork" branch --show-current
 ```
 
 ### Start
