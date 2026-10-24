@@ -97,6 +97,19 @@ describe('extractHits', () => {
     expect(hits).toHaveLength(1)
   })
 
+  test('does not invent result URLs from titles or accept non-web URLs', () => {
+    const data = {
+      results: [
+        { title: 'Missing URL' },
+        { title: 'JavaScript URL', url: 'javascript:alert(1)' },
+        { title: 'Valid', url: 'https://example.com/page' },
+      ],
+    }
+    expect(extractHits(data)).toEqual([
+      { title: 'Valid', url: 'https://example.com/page' },
+    ])
+  })
+
   test('extracts from organic_results (SerpAPI-style)', () => {
     const data = {
       organic_results: [{ title: 'T', link: 'https://ex.com' }],

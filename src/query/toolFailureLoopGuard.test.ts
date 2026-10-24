@@ -423,6 +423,30 @@ test('same-batch parallel failures still accumulate across later turns', () => {
   expect(decision.message).toContain('`NotFound`')
 })
 
+test('HTTP 404 WebFetch failures are categorized as not found', () => {
+  const state = createToolFailureLoopGuardState()
+  const failure = 'WebFetch request failed: HTTP 404 Not Found'
+
+  update(state, [toolUse('a', 'WebFetch')], [toolResult('a', failure)])
+  const second = update(state, [toolUse('b', 'WebFetch')], [
+    toolResult('b', failure),
+  ])
+
+  if (second.tripped || !second.advisories) {
+    throw new Error('Expected a not-found advisory on the second WebFetch failure')
+  }
+  expect(second.advisories[0]?.errorCategory).toBe('NotFound')
+
+  const third = update(state, [toolUse('c', 'WebFetch')], [
+    toolResult('c', failure),
+  ])
+  if (!third.tripped) {
+    throw new Error('Expected repeated WebFetch 404 failures to trip the guard')
+  }
+  expect(third.message).toContain('`WebFetch` failed 3 times')
+  expect(third.message).toContain('`NotFound`')
+})
+
 test('parallel tool failures in a single turn do not trip the guard', () => {
   const state = createToolFailureLoopGuardState()
   const decision = update(

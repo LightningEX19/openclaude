@@ -6,6 +6,7 @@ const {
   buildEmptyAdapterResultHint,
   formatProviderOutputWithEmptyHint,
   buildAdapterUnavailableError,
+  makeOutputFromCodexWebSearchResponse,
 } = __test
 
 describe('buildEmptyAdapterResultHint', () => {
@@ -104,5 +105,33 @@ describe('buildAdapterUnavailableError', () => {
     const msg = buildAdapterUnavailableError('nvidia-nim', 'timeout')
     expect(msg).toMatch(/Anthropic/)
     expect(msg).toMatch(/Codex/)
+  })
+})
+
+describe('makeOutputFromCodexWebSearchResponse', () => {
+  test('omits malformed source URLs but preserves valid HTTP(S) sources', () => {
+    const output = makeOutputFromCodexWebSearchResponse(
+      {
+        output: [
+          {
+            type: 'web_search_call',
+            action: {
+              sources: [
+                { title: 'Missing URL' },
+                { title: 'Invalid URL', url: 'javascript:alert(1)' },
+                { title: 'Valid URL', url: 'https://example.com/page' },
+              ],
+            },
+          },
+        ],
+      },
+      'test',
+      0.1,
+    )
+
+    expect(output.results).toContainEqual({
+      tool_use_id: 'codex-web-search',
+      content: [{ title: 'Valid URL', url: 'https://example.com/page' }],
+    })
   })
 })

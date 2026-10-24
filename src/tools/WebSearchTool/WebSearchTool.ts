@@ -36,6 +36,7 @@ import {
   getAvailableProviders,
   type ProviderOutput,
 } from './providers/index.js'
+import { isValidWebUrl } from './providers/types.js'
 
 const inputSchema = lazySchema(() =>
   z.strictObject({
@@ -247,7 +248,7 @@ function addCodexSource(
 ): void {
   if (typeof source !== 'object' || source === null) return
   const { url, title } = source as { url?: unknown; title?: unknown }
-  if (typeof url !== 'string' || !url) return
+  if (typeof url !== 'string' || !isValidWebUrl(url)) return
   sourceMap.set(url, {
     title: typeof title === 'string' && title ? title : url,
     url,
@@ -476,7 +477,9 @@ function makeOutputFromSearchResponse(
         continue
       }
       // Success case - add results to our collection
-      const hits = block.content.map(r => ({ title: r.title, url: r.url }))
+      const hits = block.content
+        .filter(r => isValidWebUrl(r.url))
+        .map(r => ({ title: r.title, url: r.url }))
       results.push({
         tool_use_id: block.tool_use_id,
         content: hits,

@@ -75,13 +75,22 @@ export function normalizeHit(raw: unknown): SearchHit | null {
   if (!raw || typeof raw !== 'object') return null
   const title = firstMatch(raw, TITLE_KEYS)
   const url = firstMatch(raw, URL_KEYS)
-  if (!title && !url) return null
-  const hit: SearchHit = { title: title ?? url!, url: url ?? title! }
+  if (!url || !isValidWebUrl(url)) return null
+  const hit: SearchHit = { title: title ?? url, url }
   const desc = firstMatch(raw, DESC_KEYS)
   const source = firstMatch(raw, SOURCE_KEYS)
   if (desc) hit.description = desc
   if (source) hit.source = source
   return hit
+}
+
+export function isValidWebUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -118,7 +127,7 @@ export function applyDomainFilters(
   hits: SearchHit[],
   input: SearchInput,
 ): SearchHit[] {
-  let out = hits
+  let out = hits.filter(hit => isValidWebUrl(hit.url))
   if (input.blocked_domains?.length) {
     out = out.filter(h => {
       const host = safeHostname(h.url)
@@ -135,4 +144,3 @@ export function applyDomainFilters(
   }
   return out
 }
-

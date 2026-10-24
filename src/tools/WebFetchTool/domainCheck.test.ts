@@ -7,6 +7,8 @@ import {
 
 const originalEnv = { ...process.env }
 const originalAxiosGet = axios.get
+const originalMacro = (globalThis as Record<string, unknown>).MACRO
+const hadOriginalMacro = Object.hasOwn(globalThis, 'MACRO')
 const _realProvidersModule = await import(
   `../../utils/model/providers.js?real=${Date.now()}-${Math.random()}`,
 )
@@ -26,12 +28,20 @@ async function importFreshModule(isFirstPartyAnthropicProvider?: boolean) {
 beforeEach(async () => {
   await acquireSharedMutationLock('tools/WebFetchTool/domainCheck.test.ts')
   process.env = { ...originalEnv }
+  ;(globalThis as Record<string, unknown>).MACRO = {
+    VERSION: '0.0.0-test',
+  }
 })
 
 afterEach(() => {
   try {
     process.env = { ...originalEnv }
     axios.get = originalAxiosGet
+    if (hadOriginalMacro) {
+      ;(globalThis as Record<string, unknown>).MACRO = originalMacro
+    } else {
+      delete (globalThis as Record<string, unknown>).MACRO
+    }
     mock.restore()
     mock.module('../../utils/model/providers.js', () => realProviders)
   } finally {
@@ -83,5 +93,32 @@ describe('checkDomainBlocklist', () => {
 
     expect(result.status).toBe('allowed')
     expect(getSpy).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('getWithPermittedRedirects', () => {
+  test('reports HTTP 404 responses as not found', async () => {
+    const error = Object.assign(
+      new Error('Request failed with status code 404'),
+      {
+        isAxiosError: true,
+        response: {
+          status: 404,
+          headers: {},
+          data: new ArrayBuffer(0),
+        },
+      },
+    )
+    axios.get = mock(() => Promise.reject(error)) as typeof axios.get
+
+    const { getWithPermittedRedirects } = await importFreshModule()
+
+    await expect(
+      getWithPermittedRedirects(
+        'https://example.com/missing',
+        new AbortController().signal,
+        () => true,
+      ),
+    ).rejects.toThrow('WebFetch request failed: HTTP 404 Not Found')
   })
 })

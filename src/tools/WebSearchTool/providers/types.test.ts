@@ -117,6 +117,21 @@ describe('normalizeHit', () => {
     expect(hit?.title).toBe('https://example.com')
     expect(hit?.url).toBe('https://example.com')
   })
+
+  test('does not treat a title without a URL as a result link', () => {
+    expect(normalizeHit({ title: 'A result with no URL' })).toBeNull()
+  })
+
+  test('rejects non-web and malformed URLs', () => {
+    for (const url of [
+      'not-a-url',
+      '/relative/path',
+      'javascript:alert(1)',
+      'ftp://example.com/file',
+    ]) {
+      expect(normalizeHit({ title: 'Result', url })).toBeNull()
+    }
+  })
 })
 
 // ---------------------------------------------------------------------------
@@ -160,14 +175,16 @@ describe('applyDomainFilters', () => {
     expect(result[0].url).toBe('https://github.com/openai')
   })
 
-  test('keeps malformed URLs when filtering blocked (security)', () => {
-    const hits = [{ title: 'weird', url: 'not-a-valid-url' }]
+  test('drops malformed URLs before applying domain filters', () => {
+    const hits = [
+      { title: 'good', url: 'https://example.com/page' },
+      { title: 'weird', url: 'not-a-valid-url' },
+    ]
     const result = applyDomainFilters(hits, {
       query: 'test',
       blocked_domains: ['example.com'],
     })
-    // Can't confirm it's blocked → keep it
-    expect(result).toHaveLength(1)
+    expect(result).toHaveLength(0)
   })
 
   test('filters allowed domains only', () => {

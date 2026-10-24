@@ -395,6 +395,12 @@ export async function getWithPermittedRedirects(
       throw new EgressBlockedError(hostname)
     }
 
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      throw new Error('WebFetch request failed: HTTP 404 Not Found', {
+        cause: error,
+      })
+    }
+
     throw error
   }
 }
